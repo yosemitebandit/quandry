@@ -18,7 +18,7 @@ def distance(a, b):
 
 
 # Load the image.
-source = 'b.jpg'
+source = 'a.jpg'
 piece = io.imread(source, as_grey=True)
 
 # Find edges with the Canny filter.
@@ -47,12 +47,11 @@ for coord in coords:
   y = coord[1] - center[1]
   angles.append(180 / math.pi * math.atan2(y, x))
   print coord, angles[-1]
-
 print '\n'
 
 # Find corner sets.
 trig_threshold = 0.2
-center_dist_threshold = 0.15
+center_dist_threshold = 0.2
 corner_sets = {}
 for i, coord_one in enumerate(coords):
   corner_sets[i] = {
@@ -102,6 +101,7 @@ for rect in rect_candidates:
   q = distance(coords[rect[1]], coords[rect[3]])
   area = 0.25 * math.sqrt(4 * p**2 * q**2 - (b**2 + d**2 - a**2 - c**2)**2)
   areas.append([rect, area])
+print 'areas', areas
 
 # Take a guess at the true corners by choosing the biggest area.
 sorted_areas = sorted(areas, key=lambda a: a[1], reverse=True)
