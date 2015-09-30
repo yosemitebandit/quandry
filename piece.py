@@ -24,7 +24,7 @@ piece = io.imread(source, as_grey=True)
 # Find edges with the Canny filter.
 low = 0.0
 otsu = filters.threshold_otsu(piece, nbins=256)
-sigma = 3
+sigma = 2
 canny_edges = feature.canny(piece, sigma=sigma, low_threshold=low,
                             high_threshold=otsu)
 canny_edges = np.logical_not(canny_edges)
@@ -46,12 +46,10 @@ for coord in coords:
   x = coord[0] - center[0]
   y = coord[1] - center[1]
   angles.append(180 / math.pi * math.atan2(y, x))
-  print coord, angles[-1]
-print '\n'
 
 # Find corner sets.
 trig_threshold = 0.2
-center_dist_threshold = 0.2
+center_dist_threshold = 0.3
 corner_sets = {}
 for i, coord_one in enumerate(coords):
   corner_sets[i] = {
@@ -83,8 +81,6 @@ for index in corner_sets:
     continue
   if len(corner_sets[index][180]) < 1:
     continue
-  print index, coords[index], corner_sets[index][90], corner_sets[index][180]
-  print '\n'
   # Choose the index, one 180 and two 90s to form a possible rectangle.
   for one_eighty in corner_sets[index][180]:
     for two_90s in itertools.combinations(corner_sets[index][90], 2):
@@ -99,9 +95,11 @@ for rect in rect_candidates:
   d = distance(coords[rect[3]], coords[rect[2]])
   p = distance(coords[rect[0]], coords[rect[2]])
   q = distance(coords[rect[1]], coords[rect[3]])
-  area = 0.25 * math.sqrt(4 * p**2 * q**2 - (b**2 + d**2 - a**2 - c**2)**2)
+  try:
+    area = 0.25 * math.sqrt(4 * p**2 * q**2 - (b**2 + d**2 - a**2 - c**2)**2)
+  except ValueError:
+    area = 0
   areas.append([rect, area])
-print 'areas', areas
 
 # Take a guess at the true corners by choosing the biggest area.
 sorted_areas = sorted(areas, key=lambda a: a[1], reverse=True)
@@ -109,7 +107,6 @@ corner_coords = [[], []]
 for index in sorted_areas[0][0]:
   corner_coords[0].append(coords[index][0])
   corner_coords[1].append(coords[index][1])
-print corner_coords
 
 # Display results.
 fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(20, 8))
