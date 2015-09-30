@@ -1,5 +1,7 @@
 """Puzzle piece image processing."""
 
+import math
+
 import matplotlib.pyplot as plt
 import numpy as np
 from skimage import feature
@@ -8,7 +10,7 @@ from skimage import io
 
 
 # Load the image.
-source = 'b.jpg'
+source = 'a.jpg'
 piece = io.imread(source, as_grey=True)
 
 # Find edges with the Canny filter.
@@ -21,14 +23,22 @@ canny_edges = np.logical_not(canny_edges)
 
 # Get corners.
 dist = 20
-sensitivity = 0.05
-window = 13
+sensitivity = 0.08
+window = 100
 harris = feature.corner_harris(canny_edges, k=sensitivity)
 coords = feature.corner_peaks(harris, min_distance=dist)
 
 # Find approximate center.
 center = [sum(coords[:, 0]) / len(coords[:, 0]),
           sum(coords[:, 1]) / len(coords[:, 1])]
+
+# Find angle to each candidate corner, relative to this center.
+angles = []
+for coord in coords:
+  x = coord[0] - center[0]
+  y = coord[1] - center[1]
+  angles.append(180 / math.pi * math.atan2(y, x))
+  #print coord, angles[-1]
 
 # Display results.
 fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(20, 8))
