@@ -18,11 +18,11 @@ for index, path in enumerate(filepaths):
   print 'processing "%s"..' % path
   path = os.path.join('sample-pieces/', path)
   piece = JigsawPiece(path)
+  piece.find_contours()
   # Iteratively look for a reasonable number of corner candidates.
   harris_sensitivity = 0.05
   iterations = 0
   while True:
-    piece.find_contours()
     piece.find_corners(harris_sensitivity=harris_sensitivity)
     print '  %s candidate corners' % len(piece.candidate_corners)
     if 100 <= len(piece.candidate_corners) <= 250:
