@@ -37,24 +37,37 @@ for index, path in enumerate(filepaths):
   # Find other piece data, including the "true corners."
   piece.find_center()
   piece.find_true_corners()
+  piece.find_side_lengths()
+
   # Plot the image.
   ax0 = plt.subplot(figure_grid[index, 0])
   ax0.imshow(piece.raw_image, aspect='equal')
-  ax0.axis('off')
-  # Plot the derived data in another subplot.
+  # Plot the derived outline in another subplot.
   ax1 = plt.subplot(figure_grid[index, 1])
   ax1.plot(piece.trace[:, 1], -piece.trace[:, 0], color='gray')
+  # Show the derived centroid and candidate corners.
   ax1.plot(piece.center[1], -piece.center[0], '*b', markersize=8)
   for cc in piece.candidate_corners:
     ax1.plot(cc[1], -cc[0], '+r', markersize=8)
+  # Show our best guess at the "true corners."
   corner_xs = [c[1] for c in piece.corners]
   corner_ys = [-c[0] for c in piece.corners]
   ax1.plot(corner_xs, corner_ys, 'og', markersize=8)
-  ax1.set_aspect('equal')
-  ax1.axis('off')
+  # Label the computed side path lengths.
+  for key in piece.side_lengths:
+    index_one, index_two = [int(v) for v in key.split(',')]
+    point_one = piece.trace[index_one]
+    point_two = piece.trace[index_two]
+    x = np.average([point_one[1], point_two[1]])
+    y = -1 * np.average([point_one[0], point_two[0]])
+    ax1.text(x, y, '%0.1f' % piece.side_lengths[key])
   # Set the raw image's axis limits to match the derived data's axis.
   ax0.axes.set_xlim(ax1.axes.get_xlim())
   ax0.axes.set_ylim([-1*limit for limit in ax1.axes.get_ylim()])
+  # Set other axis properties.
+  ax0.axis('off')
+  ax1.axis('off')
+  ax1.set_aspect('equal')
 
 plt.show()
 figure.savefig('out.png')

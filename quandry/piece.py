@@ -26,6 +26,7 @@ class JigsawPiece(object):
     self.corner_sets = []
     self.areas = []
     self.corners = []
+    self.side_lengths = {}
 
   def find_edges(self, canny_sigma=2, canny_low_thresh=0):
     """Find edges with the Canny filter."""
@@ -40,7 +41,7 @@ class JigsawPiece(object):
     """Find contours with skimage."""
     contours = measure.find_contours(self.image, level)
     self.trace = sorted(contours, key=lambda c: len(c))[-1]
-    # Need to return an image, not just a list of coords.
+    # Need to save an array (an image), not just a list of coords.
     self.outline = np.zeros(self.image.shape)
     for coord in self.trace:
       self.outline[coord[0]][coord[1]] = 1
@@ -136,3 +137,30 @@ class JigsawPiece(object):
     self.corners = []
     for index in sorted_areas[0][0]:
       self.corners.append(self.candidate_corners[index])
+
+  def find_side_lengths(self):
+    """Finds lengths of the four sides.
+
+    Our so-called true corners are not exactly on self.trace.  So we have to
+    find the point on self.trace that is closest to each true corner.  Then
+    we get the distance along self.trace between each corner.
+    """
+    for corner_index, corner_one in enumerate(self.corners):
+      corner_one_distances = [util.distance(corner_one, p) for p in self.trace]
+      index_one = corner_one_distances.index(min(corner_one_distances))
+      corner_two = self.corners[(corner_index+1) % 4]
+      corner_two_distances = [util.distance(corner_two, p) for p in self.trace]
+      index_two = corner_two_distances.index(min(corner_two_distances))
+      if corner_index < 3:
+        path = self.trace[index_one:index_two]
+      else:
+        # Wrap around.
+        path = np.concatenate(
+          (self.trace[index_one:-1], self.trace[0:index_two]), axis=0)
+      side_length = 0
+      for path_index, point in enumerate(path):
+        if path_index == 0:
+          continue
+        side_length += util.distance(point, path[path_index-1])
+      key = '%s,%s' % (index_one, index_two)
+      self.side_lengths[key] = side_length
