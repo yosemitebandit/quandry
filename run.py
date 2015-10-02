@@ -11,6 +11,7 @@ from quandry import JigsawPiece
 
 filepaths = ('a.jpg', 'b.jpg',)#'c.jpg', 'd.jpg', 'e.jpg', 'f.jpg')
 figure_grid = gridspec.GridSpec(len(filepaths), 3)
+figure_grid.update(wspace=0.025, hspace=0.05)
 figure = plt.gcf()
 
 for index, path in enumerate(filepaths):
@@ -18,6 +19,7 @@ for index, path in enumerate(filepaths):
   print 'processing "%s"..' % path
   path = os.path.join('sample-pieces/', path)
   piece = JigsawPiece(path, denoise_weight=3)
+  print 'raw shape', piece.raw_image.shape
   piece.find_contours()
   # Iteratively look for a reasonable number of corner candidates.
   harris_sensitivity = 0.05

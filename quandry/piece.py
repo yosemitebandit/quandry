@@ -163,6 +163,7 @@ class JigsawPiece(object):
           (self.trace[index_one:-1], self.trace[0:index_two]), axis=0)
       else:
         path = self.trace[index_one:index_two]
+      print 'path len', len(path)
       side_length = 0
       for path_index, point in enumerate(path):
         if path_index == 0:
