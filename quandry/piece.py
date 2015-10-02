@@ -7,6 +7,7 @@ import numpy as np
 from skimage import feature
 from skimage import filters
 from skimage import io
+from skimage import measure
 
 from quandry import util
 
@@ -16,6 +17,7 @@ class JigsawPiece(object):
 
   def __init__(self, filepath):
     # Load the image.
+    self.raw_image = io.imread(filepath)
     self.image = io.imread(filepath, as_grey=True)
     self.outline = []
     self.candidate_corners = []
@@ -34,6 +36,15 @@ class JigsawPiece(object):
     # Invert so we can plot a black line on a white background.
     self.outline = np.logical_not(self.outline)
 
+  def find_contours(self, level=0.51):
+    """Find contours with skimage."""
+    contours = measure.find_contours(self.image, level)
+    self.trace = sorted(contours, key=lambda c: len(c))[-1]
+    # Need to return an image, not just a list of coords.
+    self.outline = np.zeros(self.image.shape)
+    for coord in self.trace:
+      self.outline[coord[0]][coord[1]] = 1
+
   def find_corners(self, harris_sensitivity=0.05, corner_peaks_dist=2):
     """Get candidate corners."""
     harris = feature.corner_harris(self.outline, k=harris_sensitivity)
@@ -43,8 +54,8 @@ class JigsawPiece(object):
   def find_center(self):
     """Find approximate center."""
     self.center = [
-      sum(self.candidate_corners[:, 0]) / len(self.candidate_corners[:, 0]),
-      sum(self.candidate_corners[:, 1]) / len(self.candidate_corners[:, 1])]
+      np.average(self.trace[:, 0]),
+      np.average(self.trace[:, 1])]
 
   def find_angles(self):
     """Find angle to each candidate corner, relative to the center."""
@@ -118,8 +129,10 @@ class JigsawPiece(object):
 
   def find_true_corners(self):
     """Take a guess at the true corners."""
+    self.find_angles()
+    self.find_corner_sets()
+    self.find_rect_candidates()
     sorted_areas = sorted(self.areas, key=lambda a: a[1], reverse=True)
-    self.corners = [[], []]
+    self.corners = []
     for index in sorted_areas[0][0]:
-      self.corners[0].append(self.candidate_corners[index][0])
-      self.corners[1].append(self.candidate_corners[index][1])
+      self.corners.append(self.candidate_corners[index])
