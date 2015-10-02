@@ -3,49 +3,56 @@
 import os
 
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import numpy as np
 
 from quandry import JigsawPiece
 
 
-#filepaths = ('a.jpg', 'b.jpg')#, 'c.jpg', 'd.jpg', 'e.jpg', 'f.jpg')
 filepaths = ('a.jpg',)
-subplot_rows = len(filepaths)
-plot_number = 0
+figure_grid = gridspec.GridSpec(len(filepaths), 2)
+figure = plt.gcf()
 
-for path in filepaths:
+for index, path in enumerate(filepaths):
   # Calculate the piece data.
   print 'processing "%s"..' % path
   path = os.path.join('sample-pieces/', path)
   piece = JigsawPiece(path)
-
-  canny_sigma = 2
+  # Iteratively look for a reasonable number of corner candidates.
   harris_sensitivity = 0.05
+  iterations = 0
   while True:
-    piece.find_edges(canny_sigma=canny_sigma)
+    piece.find_contours()
     piece.find_corners(harris_sensitivity=harris_sensitivity)
     print '  %s candidate corners' % len(piece.candidate_corners)
-    if len(piece.candidate_corners) < 400:
+    if 100 <= len(piece.candidate_corners) <= 250:
       break
-    canny_sigma += 0.1
-    harris_sensitivity += 0.01
-
+    if iterations > 100:
+      break
+    elif len(piece.candidate_corners) < 100:
+      harris_sensitivity -= 0.01
+    elif len(piece.candidate_corners) > 250:
+      harris_sensitivity += 0.051
+    iterations += 1
+  # Find other piece data, including the "true corners."
   piece.find_center()
-  piece.find_angles()
-  piece.find_corner_sets()
-  piece.find_rect_candidates()
   piece.find_true_corners()
   # Plot the image.
-  plot_number += 1
-  plt.subplot(subplot_rows, 2, plot_number)
-  plt.imshow(piece.image, cmap=plt.cm.jet)
-  plt.axis('off')
-  # Plot the derived data
-  plot_number += 1
-  plt.subplot(subplot_rows, 2, plot_number)
-  plt.imshow(piece.outline, cmap=plt.cm.gray)
-  plt.plot(piece.center[1], piece.center[0], '*b', markersize=8)
-  plt.plot(piece.corners[1], piece.corners[0], 'og', markersize=8)
-  plt.axis('off')
+  ax0 = plt.subplot(figure_grid[index, 0])
+  ax0.imshow(piece.raw_image, aspect='equal')
+  raw_image_aspect_ratio = ax0.get_data_ratio()
+  ax0.axis('off')
+  # Plot the derived data in another subplot.
+  ax1 = plt.subplot(figure_grid[index, 1])
+  ax1.plot(piece.trace[:, 1], -piece.trace[:, 0], color='gray')
+  ax1.plot(piece.center[1], -piece.center[0], '*b', markersize=8)
+  for cc in piece.candidate_corners:
+    ax1.plot(cc[1], -cc[0], '+r', markersize=8)
+  corner_xs = [c[1] for c in piece.corners]
+  corner_ys = [-c[0] for c in piece.corners]
+  ax1.plot(corner_xs, corner_ys, 'og', markersize=8)
+  ax1.set_aspect(raw_image_aspect_ratio)
+  ax1.axis('off')
 
 plt.show()
-#fig.savefig('out.png')
+figure.savefig('out.png')
