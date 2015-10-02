@@ -40,7 +40,6 @@ for index, path in enumerate(filepaths):
   # Plot the image.
   ax0 = plt.subplot(figure_grid[index, 0])
   ax0.imshow(piece.raw_image, aspect='equal')
-  raw_image_aspect_ratio = ax0.get_data_ratio()
   ax0.axis('off')
   # Plot the derived data in another subplot.
   ax1 = plt.subplot(figure_grid[index, 1])
@@ -51,8 +50,11 @@ for index, path in enumerate(filepaths):
   corner_xs = [c[1] for c in piece.corners]
   corner_ys = [-c[0] for c in piece.corners]
   ax1.plot(corner_xs, corner_ys, 'og', markersize=8)
-  ax1.set_aspect(raw_image_aspect_ratio)
+  ax1.set_aspect('equal')
   ax1.axis('off')
+  # Set the raw image's axis limits to match the derived data's axis.
+  ax0.axes.set_xlim(ax1.axes.get_xlim())
+  ax0.axes.set_ylim([-1*limit for limit in ax1.axes.get_ylim()])
 
 plt.show()
 figure.savefig('out.png')
