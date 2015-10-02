@@ -5,9 +5,9 @@ import math
 
 import numpy as np
 from skimage import feature
-from skimage import filters
 from skimage import io
 from skimage import measure
+from skimage import restoration
 
 from quandry import util
 
@@ -15,10 +15,14 @@ from quandry import util
 class JigsawPiece(object):
   """Representation of a puzzle piece."""
 
-  def __init__(self, filepath):
-    # Load the image.
+  def __init__(self, filepath, denoise_weight=0.5):
+    # Load the image and denoise.
     self.raw_image = io.imread(filepath)
-    self.image = io.imread(filepath, as_grey=True)
+    self.grey_image = io.imread(filepath, as_grey=True)
+    self.image = restoration.denoise_tv_chambolle(
+      self.grey_image, weight=denoise_weight)
+    # Setup other to-be-determined attributes.
+    self.trace = []
     self.outline = []
     self.candidate_corners = []
     self.center = []
@@ -27,15 +31,6 @@ class JigsawPiece(object):
     self.areas = []
     self.corners = []
     self.side_lengths = {}
-
-  def find_edges(self, canny_sigma=2, canny_low_thresh=0):
-    """Find edges with the Canny filter."""
-    otsu_high_threshold = filters.threshold_otsu(self.image, nbins=256)
-    self.outline = feature.canny(
-      self.image, sigma=canny_sigma, low_threshold=canny_low_thresh,
-      high_threshold=otsu_high_threshold)
-    # Invert so we can plot a black line on a white background.
-    self.outline = np.logical_not(self.outline)
 
   def find_contours(self, level=0.51):
     """Find contours with skimage."""
@@ -134,29 +129,40 @@ class JigsawPiece(object):
     self.find_corner_sets()
     self.find_rect_candidates()
     sorted_areas = sorted(self.areas, key=lambda a: a[1], reverse=True)
-    self.corners = []
+    corners = []
     for index in sorted_areas[0][0]:
-      self.corners.append(self.candidate_corners[index])
+      corners.append(self.candidate_corners[index])
+    # And we should sort them such that they are in clockwise or CCW order.
+    first_corner = corners.pop()
+    neighbor_corners = []
+    for index, corner in enumerate(corners):
+      # Find the corner that is diagonal to the one we popped.
+      distance = util.distance(corner, first_corner)
+      dx_ratio = abs(corner[0] - first_corner[0]) / distance
+      dy_ratio = abs(corner[1] - first_corner[1]) / distance
+      if dx_ratio > 0.25 and dy_ratio > 0.25:
+        diagonal_corner = corner
+      else:
+        neighbor_corners.append(corner)
+    self.corners = [first_corner, neighbor_corners[0], diagonal_corner,
+                    neighbor_corners[1]]
 
   def find_side_lengths(self):
-    """Finds lengths of the four sides.
-
-    Our so-called true corners are not exactly on self.trace.  So we have to
-    find the point on self.trace that is closest to each true corner.  Then
-    we get the distance along self.trace between each corner.
-    """
+    """Finds lengths of the four sides."""
     for corner_index, corner_one in enumerate(self.corners):
-      corner_one_distances = [util.distance(corner_one, p) for p in self.trace]
+      corner_one_distances = [
+        util.distance(corner_one, p) for p in self.trace]
       index_one = corner_one_distances.index(min(corner_one_distances))
-      corner_two = self.corners[(corner_index+1) % 4]
-      corner_two_distances = [util.distance(corner_two, p) for p in self.trace]
+      corner_two = self.corners[(corner_index+1)%4]
+      corner_two_distances = [
+        util.distance(corner_two, p) for p in self.trace]
       index_two = corner_two_distances.index(min(corner_two_distances))
-      if corner_index < 3:
-        path = self.trace[index_one:index_two]
-      else:
-        # Wrap around.
+      # Get distances along the path.
+      if index_two < index_one:
         path = np.concatenate(
           (self.trace[index_one:-1], self.trace[0:index_two]), axis=0)
+      else:
+        path = self.trace[index_one:index_two]
       side_length = 0
       for path_index, point in enumerate(path):
         if path_index == 0:
