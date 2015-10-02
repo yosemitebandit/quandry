@@ -140,7 +140,7 @@ class JigsawPiece(object):
       distance = util.distance(corner, first_corner)
       dx_ratio = abs(corner[0] - first_corner[0]) / distance
       dy_ratio = abs(corner[1] - first_corner[1]) / distance
-      if dx_ratio > 0.25 and dy_ratio > 0.25:
+      if dx_ratio > 0.4 and dy_ratio > 0.4:
         diagonal_corner = corner
       else:
         neighbor_corners.append(corner)

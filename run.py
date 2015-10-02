@@ -9,7 +9,7 @@ import numpy as np
 from quandry import JigsawPiece
 
 
-filepaths = ('a.jpg', 'b.jpg',)# 'c.jpg', 'd.jpg', 'e.jpg', 'f.jpg')
+filepaths = ('a.jpg', 'b.jpg',)#'c.jpg', 'd.jpg', 'e.jpg', 'f.jpg')
 figure_grid = gridspec.GridSpec(len(filepaths), 3)
 figure = plt.gcf()
 
@@ -25,11 +25,11 @@ for index, path in enumerate(filepaths):
   while True:
     piece.find_corners(harris_sensitivity=harris_sensitivity)
     print '  %s candidate corners' % len(piece.candidate_corners)
-    if 100 <= len(piece.candidate_corners) <= 250:
+    if 150 <= len(piece.candidate_corners) <= 250:
       break
     if iterations > 100:
       break
-    elif len(piece.candidate_corners) < 100:
+    elif len(piece.candidate_corners) < 150:
       harris_sensitivity -= 0.01
     elif len(piece.candidate_corners) > 250:
       harris_sensitivity += 0.051
@@ -57,15 +57,13 @@ for index, path in enumerate(filepaths):
   corner_ys = [-c[0] for c in piece.corners]
   ax1.plot(corner_xs, corner_ys, 'og', markersize=8)
   # Label the computed side path lengths.
-  average_side_length = np.average(piece.side_lengths.values())
   for key in piece.side_lengths:
     index_one, index_two = [int(v) for v in key.split(',')]
     point_one = piece.trace[index_one]
     point_two = piece.trace[index_two]
     x = np.average([point_one[1], point_two[1]])
     y = -1 * np.average([point_one[0], point_two[0]])
-    value = 1e3 * piece.side_lengths[key] / average_side_length
-    ax1.text(x, y, '%0.0f' % value)
+    ax1.text(x, y, '%0.0f' % piece.side_lengths[key])
   # Set the raw image's axis limits to match the derived data's axis.
   ax0.axes.set_xlim(ax1.axes.get_xlim())
   ax0.axes.set_ylim([-1*limit for limit in ax1.axes.get_ylim()])
