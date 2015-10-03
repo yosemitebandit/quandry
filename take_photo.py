@@ -3,7 +3,6 @@
 Code from bradsmc.blogspot.com/2013/05/adafruit-ttl-serial-jpeg-camera.html
 """
 
-import datetime
 import serial
 import time
 
@@ -67,12 +66,7 @@ while serial.inWaiting() > 0:
 # Write image to file.
 serial.write(
   b'\x56\x00\x32\x0C\x00\x0A\x00\x00\x00\x00\x00\x00%c%c\x00\x0A' % (msb, lsb))
-time.sleep(5)
-now = datetime.datetime.now()
-'''
-filename = "%d.%02d.%02d.%02d.%02d.%02d.jpg" % (
-  now.year, now.month, now.day, now.hour, now.minute, now.second)
-'''
+time.sleep(10)
 filename = 'out.jpg'
 resp = serial.read(size=5)
 if b'\x76\x00\x32\x00\x00' in resp:
