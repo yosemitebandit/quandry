@@ -32,9 +32,9 @@ class JigsawPiece(object):
     self.corners = []
     self.side_lengths = {}
 
-  def find_contours(self, level=0.51):
+  def find_contours(self, contour_level=0.51):
     """Find contours with skimage."""
-    contours = measure.find_contours(self.image, level)
+    contours = measure.find_contours(self.image, contour_level)
     self.trace = sorted(contours, key=lambda c: len(c))[-1]
     # Need to save an array (an image), not just a list of coords.
     self.outline = np.zeros(self.image.shape)
