@@ -4,10 +4,15 @@ import itertools
 import math
 
 import numpy as np
+from scipy import ndimage
+from skimage import data
 from skimage import feature
+from skimage import filters
 from skimage import io
 from skimage import measure
+from skimage import morphology
 from skimage import restoration
+from skimage import segmentation
 
 from quandry import util
 
@@ -19,7 +24,7 @@ class JigsawPiece(object):
     # Load the image and denoise.
     self.raw_image = io.imread(filepath)
     self.grey_image = io.imread(filepath, as_grey=True)
-    self.image = restoration.denoise_tv_chambolle(
+    self.blurred_image = restoration.denoise_tv_chambolle(
       self.grey_image, weight=denoise_weight)
     # Setup other to-be-determined attributes.
     self.trace = []
@@ -34,12 +39,26 @@ class JigsawPiece(object):
 
   def find_contours(self, contour_level=0.51):
     """Find contours with skimage."""
-    contours = measure.find_contours(self.image, contour_level)
+    contours = measure.find_contours(self.blurred_image, contour_level)
     self.trace = sorted(contours, key=lambda c: len(c))[-1]
     # Need to save an array (an image), not just a list of coords.
-    self.outline = np.zeros(self.image.shape)
+    self.outline = np.zeros(self.blurred_image.shape)
     for coord in self.trace:
       self.outline[coord[0]][coord[1]] = 1
+
+  def segment(self, low_threshold=50, high_threshold=110):
+    """Finds outline via region based segmentation.
+
+    http://scikit-image.org/docs/dev/user_guide/tutorial_segmentation.html
+    """
+    self.elevation_map = filters.sobel(self.grey_image)
+    self.markers = np.zeros_like(self.grey_image)
+    low_threshold = low_threshold / 255.
+    high_threshold = high_threshold / 255.
+    self.markers[self.grey_image < low_threshold] = 2
+    self.markers[self.grey_image > high_threshold] = 1
+    self.segmentation = morphology.watershed(self.elevation_map, self.markers)
+    self.segmentation = ndimage.binary_fill_holes((self.segmentation - 1))
 
   def find_corners(self, harris_sensitivity=0.05, corner_peaks_dist=2):
     """Get candidate corners."""

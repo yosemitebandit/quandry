@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
+from skimage import data
 
 from quandry import JigsawPiece
 
@@ -33,7 +34,6 @@ for index, path in enumerate(filepaths):
   ax1.axis('off')
   ax2.axis('off')
   ax3.axis('off')
-  ax3.set_aspect('equal')
 
   # Start processing each image.
   print 'processing "%s"..' % path
@@ -41,15 +41,29 @@ for index, path in enumerate(filepaths):
   piece = JigsawPiece(path, denoise_weight=denoise_weight)
   # Plot the image and the denoised image.
   ax0.imshow(piece.raw_image, aspect='equal')
-  ax1.imshow(piece.image, aspect='equal', cmap=plt.cm.gray)
+  #ax1.imshow(piece.blurred_image, aspect='equal', cmap=plt.cm.gray)
+
+  #hist, bin_edges = np.histogram(piece.raw_image, bins=np.arange(0, 256))
+  #ax2.bar(bin_edges[:-1], hist, width=1)
 
   # Get contours.
   try:
-    piece.find_contours(contour_level=contour_level)
-    ax2.imshow(piece.raw_image, aspect='equal')
-    ax2.plot(piece.trace[:, 1], piece.trace[:, 0], color='green')
-    ax3.plot(piece.trace[:, 1], -piece.trace[:, 0], color='gray')
-  except:
+    #piece.find_contours(contour_level=contour_level)
+    if 'g.jpg' in path:
+      print 'g!'
+      piece.segment(low_threshold=50, high_threshold=150)
+    elif 'h.jpg' in path:
+      print 'h!'
+      piece.segment(low_threshold=90, high_threshold=120)
+    else:
+      piece.segment()
+    ax1.imshow(piece.elevation_map, aspect='equal')
+    ax2.imshow(piece.markers, aspect='equal')
+    ax3.imshow(piece.segmentation, aspect='equal')
+    #ax2.imshow(piece.raw_image, aspect='equal')
+    #ax2.plot(piece.trace[:, 1], piece.trace[:, 0], color='green')
+    #ax3.plot(piece.trace[:, 1], -piece.trace[:, 0], color='gray')
+  except AssertionError:
     print 'could not find contours for "%s"' % path
     continue
 
