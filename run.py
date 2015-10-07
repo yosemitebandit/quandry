@@ -9,8 +9,8 @@ import numpy as np
 from quandry import JigsawPiece
 
 
-denoise_weight = 0.1
-contour_level = 0.51
+denoise_weight = 0.8
+contour_level = 0.44
 initial_harris_sensitivity = 0.05
 max_corner_iterations = 50
 min_corner_candidates = 100
@@ -18,7 +18,7 @@ max_corner_candidates = 250
 
 
 filepaths = ('g.jpg', 'h.jpg')
-figure_grid = gridspec.GridSpec(len(filepaths), 3)
+figure_grid = gridspec.GridSpec(len(filepaths), 4)
 figure_grid.update(wspace=0.025, hspace=0.05)
 figure = plt.gcf()
 
@@ -28,10 +28,12 @@ for index, path in enumerate(filepaths):
   ax0 = plt.subplot(figure_grid[index, 0])
   ax1 = plt.subplot(figure_grid[index, 1])
   ax2 = plt.subplot(figure_grid[index, 2])
+  ax3 = plt.subplot(figure_grid[index, 3])
   ax0.axis('off')
   ax1.axis('off')
   ax2.axis('off')
-  ax2.set_aspect('equal')
+  ax3.axis('off')
+  ax3.set_aspect('equal')
 
   # Start processing each image.
   print 'processing "%s"..' % path
@@ -44,7 +46,9 @@ for index, path in enumerate(filepaths):
   # Get contours.
   try:
     piece.find_contours(contour_level=contour_level)
-    ax2.plot(piece.trace[:, 1], -piece.trace[:, 0], color='gray')
+    ax2.imshow(piece.raw_image, aspect='equal')
+    ax2.plot(piece.trace[:, 1], piece.trace[:, 0], color='green')
+    ax3.plot(piece.trace[:, 1], -piece.trace[:, 0], color='gray')
   except:
     print 'could not find contours for "%s"' % path
     continue
@@ -67,7 +71,7 @@ for index, path in enumerate(filepaths):
         harris_sensitivity += 0.051
       iterations += 1
     for cc in piece.candidate_corners:
-      ax2.plot(cc[1], -cc[0], '+r', markersize=8)
+      ax3.plot(cc[1], -cc[0], '+r', markersize=8)
   except:
     print 'could not find corner candidates for "%s"' % path
     continue
@@ -75,7 +79,7 @@ for index, path in enumerate(filepaths):
   # Find the center.
   try:
     piece.find_center()
-    ax2.plot(piece.center[1], -piece.center[0], '*b', markersize=8)
+    ax3.plot(piece.center[1], -piece.center[0], '*b', markersize=8)
   except:
     print 'could not find center for "%s"' % path
     continue
@@ -85,7 +89,7 @@ for index, path in enumerate(filepaths):
     piece.find_true_corners()
     corner_xs = [c[1] for c in piece.corners]
     corner_ys = [-c[0] for c in piece.corners]
-    ax2.plot(corner_xs, corner_ys, 'og', markersize=8)
+    ax3.plot(corner_xs, corner_ys, 'og', markersize=8)
   except:
     print 'could not find true corners for "%s"' % path
     continue
@@ -99,16 +103,18 @@ for index, path in enumerate(filepaths):
       point_two = piece.trace[index_two]
       x = np.average([point_one[1], point_two[1]])
       y = -1 * np.average([point_one[0], point_two[0]])
-      ax2.text(x, y, '%0.0f' % piece.side_lengths[key])
+      ax3.text(x, y, '%0.0f' % piece.side_lengths[key])
   except:
     print 'could not find true corners for "%s"' % path
     continue
 
   # Set the raw image's axis limits to match the derived data's axis.
-  ax0.axes.set_xlim(ax2.axes.get_xlim())
-  ax0.axes.set_ylim([-1*limit for limit in ax2.axes.get_ylim()])
-  ax1.axes.set_xlim(ax2.axes.get_xlim())
-  ax1.axes.set_ylim([-1*limit for limit in ax2.axes.get_ylim()])
+  ax0.axes.set_xlim(ax3.axes.get_xlim())
+  ax0.axes.set_ylim([-1*limit for limit in ax3.axes.get_ylim()])
+  ax1.axes.set_xlim(ax3.axes.get_xlim())
+  ax1.axes.set_ylim([-1*limit for limit in ax3.axes.get_ylim()])
+  ax2.axes.set_xlim(ax3.axes.get_xlim())
+  ax2.axes.set_ylim([-1*limit for limit in ax3.axes.get_ylim()])
 
 plt.show()
 figure.savefig('out.png')
