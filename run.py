@@ -10,7 +10,7 @@ from quandry import JigsawPiece
 
 
 denoise_weight = 0.8
-contour_level = 0.44
+contour_level = 0.4
 initial_harris_sensitivity = 0.05
 max_corner_iterations = 50
 min_corner_candidates = 100
@@ -116,5 +116,6 @@ for index, path in enumerate(filepaths):
   ax2.axes.set_xlim(ax3.axes.get_xlim())
   ax2.axes.set_ylim([-1*limit for limit in ax3.axes.get_ylim()])
 
+
 plt.show()
-figure.savefig('out.png')
+figure.savefig('out.png', dpi=100)
