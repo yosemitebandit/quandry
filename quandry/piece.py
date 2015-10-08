@@ -168,6 +168,7 @@ class JigsawPiece(object):
 
   def find_side_lengths(self):
     """Finds lengths of the four sides."""
+    self.paths = []
     for corner_index, corner_one in enumerate(self.corners):
       corner_one_distances = [
         util.distance(corner_one, p) for p in self.trace]
@@ -182,7 +183,8 @@ class JigsawPiece(object):
           (self.trace[index_one:-1], self.trace[0:index_two]), axis=0)
       else:
         path = self.trace[index_one:index_two]
-      print 'path len', len(path)
+      self.paths.append(path)
+      print 'path elements', len(path)
       side_length = 0
       for path_index, point in enumerate(path):
         if path_index == 0:

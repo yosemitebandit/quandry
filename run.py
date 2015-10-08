@@ -109,6 +109,11 @@ for index, path in enumerate(filepaths):
       x = np.average([point_one[1], point_two[1]])
       y = -1 * np.average([point_one[0], point_two[0]])
       ax1.text(x, y, '%0.0f' % piece.side_lengths[key])
+    # Plot the paths between corners.
+    for path in piece.paths:
+      x = [p[1] for p in path]
+      y = [-p[0] for p in path]
+      ax1.plot(x, y)
   except:
     print 'could not find true corners for "%s"' % path
     continue
