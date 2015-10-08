@@ -31,9 +31,8 @@ class JigsawPiece(object):
     self.corner_sets = []
     self.areas = []
     self.corners = []
-    self.side_lengths = {}
     self.paths = []
-    self.line_lengths = []
+    self.corner_distances = []
 
   def segment(self, low_threshold=50, high_threshold=110, contour_level=0.5):
     """Finds the piece's outline via region-based segmentation.
@@ -169,7 +168,7 @@ class JigsawPiece(object):
     self.corners = [first_corner, neighbor_corners[0], diagonal_corner,
                     neighbor_corners[1]]
 
-  def find_side_lengths(self):
+  def find_paths(self):
     """Finds lengths of the four sides."""
     for corner_index, corner_one in enumerate(self.corners):
       corner_one_distances = [
@@ -179,25 +178,16 @@ class JigsawPiece(object):
       corner_two_distances = [
         util.distance(corner_two, p) for p in self.trace]
       index_two = corner_two_distances.index(min(corner_two_distances))
-      # Get distances along the path.
       if index_two < index_one:
         path = np.concatenate(
           (self.trace[index_one:-1], self.trace[0:index_two]), axis=0)
       else:
         path = self.trace[index_one:index_two]
       self.paths.append(path)
-      print 'path elements', len(path)
-      side_length = 0
-      for path_index, point in enumerate(path):
-        if path_index == 0:
-          continue
-        side_length += util.distance(point, path[path_index-1])
-      key = '%s,%s' % (index_one, index_two)
-      self.side_lengths[key] = side_length
 
-  def straight_line_lengths(self):
+  def find_corner_distances(self):
     """Find straight line distances between corners."""
     for corner_index, corner_a in enumerate(self.corners):
       corner_b = self.corners[(corner_index+1)%4]
       distance = util.distance(corner_a, corner_b)
-      self.line_lengths.append(distance)
+      self.corner_distances.append(distance)
