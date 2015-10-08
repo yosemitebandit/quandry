@@ -40,10 +40,8 @@ for index, path in enumerate(filepaths):
   # Get contours.
   try:
     if 'g.jpg' in path:
-      print 'g!'
       piece.segment(low_threshold=50, high_threshold=150)
     elif 'h.jpg' in path:
-      print 'h!'
       piece.segment(low_threshold=90, high_threshold=120)
     else:
       piece.segment()
@@ -85,7 +83,6 @@ for index, path in enumerate(filepaths):
     for cc in piece.candidate_corners:
       ax1.plot(cc[1], -cc[0], '+r', markersize=8)
   except:
-    print harris_sensitivity
     print 'could not find corner candidates for "%s"' % path
     continue
 
