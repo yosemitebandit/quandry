@@ -22,6 +22,7 @@ class JigsawPiece(object):
     self.raw_image = io.imread(filepath)
     self.grey_image = io.imread(filepath, as_grey=True)
     # Setup other to-be-determined attributes.
+    self.segmentation = []
     self.trace = []
     self.outline = []
     self.candidate_corners = []
@@ -31,6 +32,8 @@ class JigsawPiece(object):
     self.areas = []
     self.corners = []
     self.side_lengths = {}
+    self.paths = []
+    self.line_lengths = []
 
   def segment(self, low_threshold=50, high_threshold=110, contour_level=0.5):
     """Finds the piece's outline via region-based segmentation.
@@ -168,7 +171,6 @@ class JigsawPiece(object):
 
   def find_side_lengths(self):
     """Finds lengths of the four sides."""
-    self.paths = []
     for corner_index, corner_one in enumerate(self.corners):
       corner_one_distances = [
         util.distance(corner_one, p) for p in self.trace]
@@ -192,3 +194,10 @@ class JigsawPiece(object):
         side_length += util.distance(point, path[path_index-1])
       key = '%s,%s' % (index_one, index_two)
       self.side_lengths[key] = side_length
+
+  def straight_line_lengths(self):
+    """Find straight line distances between corners."""
+    for corner_index, corner_a in enumerate(self.corners):
+      corner_b = self.corners[(corner_index+1)%4]
+      distance = util.distance(corner_a, corner_b)
+      self.line_lengths.append(distance)

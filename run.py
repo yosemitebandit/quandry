@@ -99,6 +99,7 @@ for index, path in enumerate(filepaths):
   # Get the side lengths.
   try:
     piece.find_side_lengths()
+    '''
     for key in piece.side_lengths:
       index_one, index_two = [int(v) for v in key.split(',')]
       point_one = piece.trace[index_one]
@@ -106,13 +107,21 @@ for index, path in enumerate(filepaths):
       x = np.average([point_one[1], point_two[1]])
       y = -1 * np.average([point_one[0], point_two[0]])
       ax1.text(x, y, '%0.0f' % piece.side_lengths[key])
+    '''
+    piece.straight_line_lengths()
+    for index, length in enumerate(piece.line_lengths):
+      corner_a = piece.corners[index]
+      corner_b = piece.corners[(index+1) % 4]
+      x = np.average([corner_a[1], corner_b[1]])
+      y = -1 * np.average([corner_a[0], corner_b[0]])
+      ax1.text(x, y, '%0.0f' % length)
     # Plot the paths between corners.
     for path in piece.paths:
       x = [p[1] for p in path]
       y = [-p[0] for p in path]
       ax1.plot(x, y)
   except:
-    print 'could not find true corners for "%s"' % path
+    print 'could not find side lengths for "%s"' % path
     continue
 
 
