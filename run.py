@@ -9,10 +9,10 @@ import numpy as np
 from quandry import JigsawPiece
 
 
-initial_harris_sensitivity = 0.0001
+initial_harris_sensitivity = 0.05
 max_corner_iterations = 50
-min_corner_candidates = 150
-max_corner_candidates = 250
+min_corner_candidates = 30
+max_corner_candidates = 50
 
 
 filepaths = ('g.jpg', 'h.jpg')
@@ -57,6 +57,14 @@ for index, path in enumerate(filepaths):
   ax0.axes.set_xlim(ax1.axes.get_xlim())
   ax0.axes.set_ylim([-1*limit for limit in ax1.axes.get_ylim()])
 
+  # Find the center.
+  try:
+    piece.find_center()
+    ax1.plot(piece.center[1], -piece.center[0], '*b', markersize=8)
+  except:
+    print 'could not find center for "%s"' % path
+    continue
+
   # Iteratively look for a reasonable number of corner candidates.
   try:
     harris_sensitivity = initial_harris_sensitivity
@@ -79,14 +87,6 @@ for index, path in enumerate(filepaths):
   except:
     print harris_sensitivity
     print 'could not find corner candidates for "%s"' % path
-    continue
-
-  # Find the center.
-  try:
-    piece.find_center()
-    ax1.plot(piece.center[1], -piece.center[0], '*b', markersize=8)
-  except:
-    print 'could not find center for "%s"' % path
     continue
 
   # Find the "true corners."

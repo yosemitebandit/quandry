@@ -44,26 +44,33 @@ class JigsawPiece(object):
     high_threshold = high_threshold / 255.
     markers[self.grey_image < low_threshold] = 2
     markers[self.grey_image > high_threshold] = 1
-    segmentation = morphology.watershed(elevation_map, markers)
-    segmentation = ndimage.binary_fill_holes((segmentation - 1))
-    contours = measure.find_contours(segmentation, contour_level)
+    self.segmentation = morphology.watershed(elevation_map, markers)
+    self.segmentation = ndimage.binary_fill_holes((self.segmentation - 1))
+    contours = measure.find_contours(self.segmentation, contour_level)
     self.trace = sorted(contours, key=lambda c: len(c))[-1]
     # Need to save an array (an image), not just a list of coords.
     self.outline = np.zeros(self.grey_image.shape)
     for coord in self.trace:
       self.outline[coord[0]][coord[1]] = 1
 
-  def find_corners(self, harris_sensitivity=0.05, corner_peaks_dist=2):
-    """Get candidate corners."""
-    harris = feature.corner_harris(self.outline, k=harris_sensitivity)
-    self.candidate_corners = feature.corner_peaks(
-      harris, min_distance=corner_peaks_dist)
-
   def find_center(self):
     """Find approximate center."""
     self.center = [
       np.average(self.trace[:, 0]),
       np.average(self.trace[:, 1])]
+
+  def find_corners(self, harris_sensitivity=0.05, corner_peaks_dist=2):
+    """Get candidate corners."""
+    harris = feature.corner_harris(self.segmentation, k=harris_sensitivity)
+    corners = feature.corner_peaks(harris, min_distance=corner_peaks_dist)
+    # Try to remove outliers -- probably edges of the image.
+    distances = [util.distance(c, self.center) for c in corners]
+    average = np.average(distances)
+    stdev = np.std(distances)
+    self.candidate_corners = []
+    for index, corner in enumerate(corners):
+      if average + 1.5 * stdev > distances[index]:
+        self.candidate_corners.append(corner)
 
   def find_angles(self):
     """Find angle to each candidate corner, relative to the center."""
