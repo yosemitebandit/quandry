@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
 
+from quandry import compare
 from quandry import JigsawPiece
 
 
@@ -21,7 +22,7 @@ figure_grid.update(wspace=0.025, hspace=0.05)
 figure = plt.gcf()
 
 
-for index, path in enumerate(filepaths):
+for index, filepath in enumerate(filepaths):
   # Setup each axis.
   ax0 = plt.subplot(figure_grid[index, 0])
   ax1 = plt.subplot(figure_grid[index, 1])
@@ -31,24 +32,26 @@ for index, path in enumerate(filepaths):
   ax1.set_aspect('equal')
 
   # Start processing each image.
-  print 'processing "%s"..' % path
-  path = os.path.join('sample-pieces/', path)
-  piece = JigsawPiece(path)
+  print 'processing "%s"..' % filepath
+  filepath = os.path.join('sample-pieces/', filepath)
+  piece = JigsawPiece(filepath)
   # Plot the raw image.
   ax0.imshow(piece.raw_image, aspect='equal')
 
   # Get contours.
   try:
-    if 'g.jpg' in path:
+    if 'g.jpg' in filepath:
       piece.segment(low_threshold=50, high_threshold=150)
-    elif 'h.jpg' in path:
+    elif 'h.jpg' in filepath:
       piece.segment(low_threshold=90, high_threshold=120)
+    elif '0.jpg' in filepath:
+      piece.segment(low_threshold=100, high_threshold=170)
     else:
       piece.segment()
     ax0.plot(piece.trace[:, 1], piece.trace[:, 0], color='green')
     ax1.plot(piece.trace[:, 1], -piece.trace[:, 0], color='gray')
   except AssertionError:
-    print 'could not find contours for "%s"' % path
+    print 'could not find contours for "%s"' % filepath
     continue
 
   # Set the raw image's axis limits to match the derived data's axis.
@@ -60,7 +63,7 @@ for index, path in enumerate(filepaths):
     piece.find_center()
     ax1.plot(piece.center[1], -piece.center[0], '*b', markersize=8)
   except:
-    print 'could not find center for "%s"' % path
+    print 'could not find center for "%s"' % filepath
     continue
 
   # Iteratively look for a reasonable number of corner candidates.
@@ -83,7 +86,7 @@ for index, path in enumerate(filepaths):
     for cc in piece.candidate_corners:
       ax1.plot(cc[1], -cc[0], '+r', markersize=8)
   except:
-    print 'could not find corner candidates for "%s"' % path
+    print 'could not find corner candidates for "%s"' % filepath
     continue
 
   # Find the "true corners."
@@ -93,18 +96,18 @@ for index, path in enumerate(filepaths):
     corner_ys = [-c[0] for c in piece.corners]
     ax1.plot(corner_xs, corner_ys, 'og', markersize=8)
   except:
-    print 'could not find true corners for "%s"' % path
+    print 'could not find true corners for "%s"' % filepath
     continue
 
-  # Get the paths connecting corners.
+  # Determine the four sides: paths along the outline that connect corners.
   try:
-    piece.find_paths()
-    for corner_path in piece.paths:
+    piece.find_sides()
+    for corner_path in piece.sides:
       x = [p[1] for p in corner_path]
       y = [-p[0] for p in corner_path]
       ax1.plot(x, y)
   except:
-    print 'could not find paths between corners for "%s"' % path
+    print 'could not find sides for "%s"' % filepath
 
   # Get straight line distances between corners.
   try:
@@ -116,7 +119,7 @@ for index, path in enumerate(filepaths):
       y = -1 * np.average([corner_a[0], corner_b[0]])
       ax1.text(x, y, '%0.0f' % length)
   except:
-    print 'could not find side lengths for "%s"' % path
+    print 'could not find side lengths for "%s"' % filepath
     continue
 
 

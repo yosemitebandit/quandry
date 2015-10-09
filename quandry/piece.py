@@ -31,7 +31,7 @@ class JigsawPiece(object):
     self.corner_sets = []
     self.areas = []
     self.corners = []
-    self.paths = []
+    self.sides = []
     self.corner_distances = []
 
   def segment(self, low_threshold=50, high_threshold=110, contour_level=0.5):
@@ -168,8 +168,8 @@ class JigsawPiece(object):
     self.corners = [first_corner, neighbor_corners[0], diagonal_corner,
                     neighbor_corners[1]]
 
-  def find_paths(self):
-    """Finds lengths of the four sides."""
+  def find_sides(self):
+    """Find the piece's four sides."""
     for corner_index, corner_one in enumerate(self.corners):
       corner_one_distances = [
         util.distance(corner_one, p) for p in self.trace]
@@ -179,11 +179,11 @@ class JigsawPiece(object):
         util.distance(corner_two, p) for p in self.trace]
       index_two = corner_two_distances.index(min(corner_two_distances))
       if index_two < index_one:
-        path = np.concatenate(
+        side = np.concatenate(
           (self.trace[index_one:-1], self.trace[0:index_two]), axis=0)
       else:
-        path = self.trace[index_one:index_two]
-      self.paths.append(path)
+        side = self.trace[index_one:index_two]
+      self.sides.append(side)
 
   def find_corner_distances(self):
     """Find straight line distances between corners."""
