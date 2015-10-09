@@ -31,7 +31,7 @@ class JigsawPiece(object):
     self.areas = []
     self.corners = []
     self.sides = []
-    self.corner_distances = []
+    self.side_lengths = []
 
   def segment(self, low_threshold=50, high_threshold=110, contour_level=0.5):
     """Finds the piece's outline via region-based segmentation.
@@ -183,9 +183,12 @@ class JigsawPiece(object):
         side = self.outline[smaller_index:larger_index]
       self.sides.append(side)
 
-  def find_corner_distances(self):
-    """Find straight line distances between corners."""
-    for corner_index, corner_a in enumerate(self.corners):
-      corner_b = self.corners[(corner_index + 1) % 4]
-      distance = util.distance(corner_a, corner_b)
-      self.corner_distances.append(distance)
+  def find_side_lengths(self):
+    """Find length of each side along the side's path."""
+    for side in self.sides:
+      length = 0
+      for coord_index, coord in enumerate(side):
+        if coord_index == 0:
+          continue
+        length += util.distance(coord, side[coord_index - 1])
+      self.side_lengths.append(length)

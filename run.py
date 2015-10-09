@@ -111,23 +111,17 @@ for index, filepath in enumerate(filepaths):
   except:
     print 'could not find sides for "%s"' % filepath
 
-  # Get straight line distances between corners.
+  # Get length of each side and label.
   try:
-    piece.find_corner_distances()
-  except:
-    print 'could not find side lengths for "%s"' % filepath
-    continue
-
-  # Label sides and corner distances.
-  try:
+    piece.find_side_lengths()
     for index, side in enumerate(piece.sides):
-      length = piece.corner_distances[index]
+      length = piece.side_lengths[index]
       x, y = (np.average(side[:, 0]), np.average(side[:, 1]))
       label = 'side %s: %0.0f' % (index, length)
       ax1.text(x, y, label, horizontalalignment='center',
                verticalalignment='center')
   except:
-    print 'could not attach labels for "%s"' % filepath
+    print 'could not find side lengths for "%s"' % filepath
     continue
 
 plt.show()
