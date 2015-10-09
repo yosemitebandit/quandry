@@ -31,7 +31,6 @@ class JigsawPiece(object):
     self.areas = []
     self.corners = []
     self.sides = []
-    self.average_side_values = []
     self.corner_distances = []
 
   def segment(self, low_threshold=50, high_threshold=110, contour_level=0.5):
@@ -162,8 +161,8 @@ class JigsawPiece(object):
 
   def find_sides(self):
     """Find the piece's four sides."""
+    print 'outline elements:', len(self.outline)
     for corner_index, corner_one in enumerate(self.corners):
-      print 'orig:', corner_index, corner_one
       # The corners may not lie directly on the piece's outline.  So we find the
       # points closest to the corners that do lie on the outline.
       corner_one_distances = [
@@ -173,28 +172,17 @@ class JigsawPiece(object):
       corner_two_distances = [
         util.distance(corner_two, p) for p in self.outline]
       index_two = corner_two_distances.index(min(corner_two_distances))
-      if index_two < index_one:
+      # The array of coordinates defining the outline may wrap around as we
+      # trace a specific side..
+      larger_index = max((index_one, index_two))
+      smaller_index = min((index_one, index_two))
+      if float(larger_index - smaller_index) / len(self.outline) > 0.4:
         side = np.concatenate(
-          (self.outline[index_one:-1], self.outline[0:index_two]), axis=0)
+          (self.outline[larger_index:-1], self.outline[0:smaller_index]),
+          axis=0)
       else:
-        side = self.outline[index_one:index_two]
+        side = self.outline[smaller_index:larger_index]
       self.sides.append(side)
-    # Orient the sides such that they are in "NESW" order.
-    '''
-    for side in self.sides:
-      self.average_side_values.append(
-        [np.average(side[:, 0]), np.average(side[:, 1])])
-    x = [v[1] for v in self.average_side_values]
-    y = [-v[0] for v in self.average_side_values]
-    min_x_index = x.index(min(x))
-    max_x_index = x.index(max(x))
-    min_y_index = y.index(min(y))
-    max_y_index = y.index(max(y))
-    index_array = np.array([max_y_index, max_x_index, min_y_index,
-                            min_x_index])
-    #self.sides = np.array(self.sides)[index_array]
-    #self.average_side_values = np.array(self.average_side_values)[index_array]
-    '''
 
   def find_corner_distances(self):
     """Find straight line distances between corners."""

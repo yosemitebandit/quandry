@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
 
-from quandry import compare
 from quandry import JigsawPiece
 
 
@@ -51,7 +50,7 @@ for index, filepath in enumerate(filepaths):
       piece.segment()
     ax0.plot(piece.outline[:, 0], piece.outline[:, 1], color='green')
     ax1.plot(piece.outline[:, 0], piece.outline[:, 1], color='gray')
-  except AssertionError:
+  except:
     print 'could not find contours for "%s"' % filepath
     continue
 
@@ -96,7 +95,7 @@ for index, filepath in enumerate(filepaths):
     corner_xs = [c[0] for c in piece.corners]
     corner_ys = [c[1] for c in piece.corners]
     ax1.plot(corner_xs, corner_ys, 'og', markersize=8)
-  except AssertionError:
+  except:
     print 'could not find true corners for "%s"' % filepath
     continue
 
@@ -109,7 +108,7 @@ for index, filepath in enumerate(filepaths):
       x = [s[0] for s in side]
       y = [s[1] for s in side]
       ax1.plot(x, y, color=colors[index])
-  except AssertionError:
+  except:
     print 'could not find sides for "%s"' % filepath
 
   # Get straight line distances between corners.
@@ -121,11 +120,11 @@ for index, filepath in enumerate(filepaths):
 
   # Label sides and corner distances.
   try:
-    for index, _ in enumerate(piece.sides):
+    for index, side in enumerate(piece.sides):
       length = piece.corner_distances[index]
-      value = piece.average_side_values[index]
+      x, y = (np.average(side[:, 0]), np.average(side[:, 1]))
       label = 'side %s: %0.0f' % (index, length)
-      ax1.text(value[0], value[1], label, horizontalalignment='center',
+      ax1.text(x, y, label, horizontalalignment='center',
                verticalalignment='center')
   except:
     print 'could not attach labels for "%s"' % filepath
