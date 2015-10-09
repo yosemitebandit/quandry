@@ -49,9 +49,9 @@ class JigsawPiece(object):
     self.segmentation = ndimage.binary_fill_holes((self.segmentation - 1))
     contours = measure.find_contours(self.segmentation, contour_level)
     largest_contour = sorted(contours, key=lambda c: len(c))[-1]
-    # We have to flip these coordinates over y=x to fix some issues with the
+    # We have to flip these coordinates over y=-x to fix some issues with the
     # plots.
-    self.outline = np.array([[p[1], p[0]] for p in largest_contour])
+    self.outline = np.array([[p[1], -p[0]] for p in largest_contour])
 
   def find_center(self):
     """Find approximate center."""
@@ -62,8 +62,8 @@ class JigsawPiece(object):
   def find_corners(self, harris_sensitivity=0.05, corner_peaks_dist=2):
     """Get candidate corners."""
     harris = feature.corner_harris(self.segmentation, k=harris_sensitivity)
-    # Again note the flip over y=x to fix plotting issues..
-    corners = [[p[1], p[0]] for p in
+    # Again note the flip over y=-x to fix plotting issues..
+    corners = [[p[1], -p[0]] for p in
                feature.corner_peaks(harris, min_distance=corner_peaks_dist)]
     # Try to remove outliers -- probably edges of the image.
     distances = [util.distance(c, self.center) for c in corners]
@@ -161,7 +161,6 @@ class JigsawPiece(object):
 
   def find_sides(self):
     """Find the piece's four sides."""
-    print 'outline elements:', len(self.outline)
     for corner_index, corner_one in enumerate(self.corners):
       # The corners may not lie directly on the piece's outline.  So we find the
       # points closest to the corners that do lie on the outline.

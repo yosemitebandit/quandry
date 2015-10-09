@@ -36,7 +36,6 @@ for index, filepath in enumerate(filepaths):
   piece = JigsawPiece(filepath)
   # Plot the raw image.
   ax0.imshow(piece.raw_image, aspect='equal')
-  ax0.invert_yaxis()
 
   # Get contours.
   try:
@@ -48,7 +47,7 @@ for index, filepath in enumerate(filepaths):
       piece.segment(low_threshold=100, high_threshold=170)
     else:
       piece.segment()
-    ax0.plot(piece.outline[:, 0], piece.outline[:, 1], color='green')
+    ax0.plot(piece.outline[:, 0], -piece.outline[:, 1], color='green')
     ax1.plot(piece.outline[:, 0], piece.outline[:, 1], color='gray')
   except:
     print 'could not find contours for "%s"' % filepath
@@ -56,7 +55,8 @@ for index, filepath in enumerate(filepaths):
 
   # Set the raw image's axis limits to match the derived data's axis.
   ax0.axes.set_xlim(ax1.axes.get_xlim())
-  ax0.axes.set_ylim(ax1.axes.get_ylim())
+  y_min, y_max = ax1.axes.get_ylim()
+  ax0.axes.set_ylim((-y_min, -y_max))
 
   # Find the center.
   try:
