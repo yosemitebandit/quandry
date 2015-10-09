@@ -32,6 +32,8 @@ class JigsawPiece(object):
     self.corners = []
     self.sides = []
     self.side_lengths = []
+    self.mean_side_points = []
+    self.side_types = []
 
   def segment(self, low_threshold=50, high_threshold=110, contour_level=0.5):
     """Finds the piece's outline via region-based segmentation.
@@ -192,3 +194,24 @@ class JigsawPiece(object):
           continue
         length += util.distance(coord, side[coord_index - 1])
       self.side_lengths.append(length)
+
+  def find_side_types(self, percent_diff_threshold=0.08):
+    """Detect if each side is in, out or flat."""
+    for side in self.sides:
+      mean_side_point = [
+        np.average(side[:, 0]), np.average(side[:, 1])]
+      self.mean_side_points.append(mean_side_point)
+      corner_a, corner_b = side[0], side[-1]
+      mean_corner_point = [np.average((corner_a[0], corner_b[0])),
+                           np.average((corner_a[1], corner_b[1]))]
+      side_point_dist = util.distance(self.center, mean_side_point)
+      corner_point_dist = util.distance(self.center, mean_corner_point)
+      percent_diff = (
+        abs(side_point_dist - corner_point_dist) / side_point_dist)
+      if percent_diff < percent_diff_threshold:
+        side_type = 'flat'
+      elif side_point_dist > corner_point_dist:
+        side_type = 'out'
+      else:
+        side_type = 'in'
+      self.side_types.append(side_type)

@@ -114,14 +114,22 @@ for index, filepath in enumerate(filepaths):
   # Get length of each side and label.
   try:
     piece.find_side_lengths()
+  except:
+    print 'could not find side lengths for "%s"' % filepath
+    continue
+
+  # Classify each side's type and label.
+  try:
+    piece.find_side_types()
     for index, side in enumerate(piece.sides):
       length = piece.side_lengths[index]
-      x, y = (np.average(side[:, 0]), np.average(side[:, 1]))
-      label = 'side %s: %0.0f' % (index, length)
+      side_type = piece.side_types[index]
+      x, y = piece.mean_side_points[index]
+      label = 'side %s: %0.0f (%s)' % (index, length, side_type)
       ax1.text(x, y, label, horizontalalignment='center',
                verticalalignment='center')
   except:
-    print 'could not find side lengths for "%s"' % filepath
+    print 'could not find side types for "%s"' % filepath
     continue
 
 plt.show()
