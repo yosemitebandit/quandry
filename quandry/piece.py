@@ -23,7 +23,6 @@ class JigsawPiece(object):
     self.grey_image = io.imread(filepath, as_grey=True)
     # Setup other to-be-determined attributes.
     self.segmentation = []
-    self.trace = []
     self.outline = []
     self.candidate_corners = []
     self.center = []
@@ -32,6 +31,7 @@ class JigsawPiece(object):
     self.areas = []
     self.corners = []
     self.sides = []
+    self.average_side_values = []
     self.corner_distances = []
 
   def segment(self, low_threshold=50, high_threshold=110, contour_level=0.5):
@@ -49,22 +49,23 @@ class JigsawPiece(object):
     self.segmentation = morphology.watershed(elevation_map, markers)
     self.segmentation = ndimage.binary_fill_holes((self.segmentation - 1))
     contours = measure.find_contours(self.segmentation, contour_level)
-    self.trace = sorted(contours, key=lambda c: len(c))[-1]
-    # Need to save an array (an image), not just a list of coords.
-    self.outline = np.zeros(self.grey_image.shape)
-    for coord in self.trace:
-      self.outline[coord[0]][coord[1]] = 1
+    largest_contour = sorted(contours, key=lambda c: len(c))[-1]
+    # We have to flip these coordinates over y=x to fix some issues with the
+    # plots.
+    self.outline = np.array([[p[1], p[0]] for p in largest_contour])
 
   def find_center(self):
     """Find approximate center."""
     self.center = [
-      np.average(self.trace[:, 0]),
-      np.average(self.trace[:, 1])]
+      np.average(self.outline[:, 0]),
+      np.average(self.outline[:, 1])]
 
   def find_corners(self, harris_sensitivity=0.05, corner_peaks_dist=2):
     """Get candidate corners."""
     harris = feature.corner_harris(self.segmentation, k=harris_sensitivity)
-    corners = feature.corner_peaks(harris, min_distance=corner_peaks_dist)
+    # Again note the flip over y=x to fix plotting issues..
+    corners = [[p[1], p[0]] for p in
+               feature.corner_peaks(harris, min_distance=corner_peaks_dist)]
     # Try to remove outliers -- probably edges of the image.
     distances = [util.distance(c, self.center) for c in corners]
     average = np.average(distances)
@@ -153,43 +154,51 @@ class JigsawPiece(object):
     corners = []
     for index in sorted_areas[0][0]:
       corners.append(self.candidate_corners[index])
-    # And we should sort them such that they are in clockwise or CCW order.
-    first_corner = corners.pop()
-    neighbor_corners = []
-    for index, corner in enumerate(corners):
-      # Find the corner that is diagonal to the one we popped.
-      distance = util.distance(corner, first_corner)
-      dx_ratio = abs(corner[0] - first_corner[0]) / distance
-      dy_ratio = abs(corner[1] - first_corner[1]) / distance
-      if dx_ratio > 0.4 and dy_ratio > 0.4:
-        diagonal_corner = corner
-      else:
-        neighbor_corners.append(corner)
-    self.corners = [first_corner, neighbor_corners[0], diagonal_corner,
-                    neighbor_corners[1]]
+    # Sort them such that the top left corner is first and then they proceed in
+    # clockwise order.
+    angles = [(c, util.angle(c, self.center)) for c in corners]
+    corners = [c[0] for c in sorted(angles, key=lambda a: a[1])]
+    self.corners = [corners[1], corners[0], corners[3], corners[2]]
 
   def find_sides(self):
     """Find the piece's four sides."""
     for corner_index, corner_one in enumerate(self.corners):
-      # The corners may not lie directly on the piece's trace.  So we find the
-      # points closest to the corners that do lie on the trace.
+      print 'orig:', corner_index, corner_one
+      # The corners may not lie directly on the piece's outline.  So we find the
+      # points closest to the corners that do lie on the outline.
       corner_one_distances = [
-        util.distance(corner_one, p) for p in self.trace]
+        util.distance(corner_one, p) for p in self.outline]
       index_one = corner_one_distances.index(min(corner_one_distances))
       corner_two = self.corners[(corner_index + 1) % 4]
       corner_two_distances = [
-        util.distance(corner_two, p) for p in self.trace]
+        util.distance(corner_two, p) for p in self.outline]
       index_two = corner_two_distances.index(min(corner_two_distances))
       if index_two < index_one:
         side = np.concatenate(
-          (self.trace[index_one:-1], self.trace[0:index_two]), axis=0)
+          (self.outline[index_one:-1], self.outline[0:index_two]), axis=0)
       else:
-        side = self.trace[index_one:index_two]
+        side = self.outline[index_one:index_two]
       self.sides.append(side)
+    # Orient the sides such that they are in "NESW" order.
+    '''
+    for side in self.sides:
+      self.average_side_values.append(
+        [np.average(side[:, 0]), np.average(side[:, 1])])
+    x = [v[1] for v in self.average_side_values]
+    y = [-v[0] for v in self.average_side_values]
+    min_x_index = x.index(min(x))
+    max_x_index = x.index(max(x))
+    min_y_index = y.index(min(y))
+    max_y_index = y.index(max(y))
+    index_array = np.array([max_y_index, max_x_index, min_y_index,
+                            min_x_index])
+    #self.sides = np.array(self.sides)[index_array]
+    #self.average_side_values = np.array(self.average_side_values)[index_array]
+    '''
 
   def find_corner_distances(self):
     """Find straight line distances between corners."""
     for corner_index, corner_a in enumerate(self.corners):
-      corner_b = self.corners[(corner_index+1)%4]
+      corner_b = self.corners[(corner_index + 1) % 4]
       distance = util.distance(corner_a, corner_b)
       self.corner_distances.append(distance)
