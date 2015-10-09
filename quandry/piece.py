@@ -171,10 +171,12 @@ class JigsawPiece(object):
   def find_sides(self):
     """Find the piece's four sides."""
     for corner_index, corner_one in enumerate(self.corners):
+      # The corners may not lie directly on the piece's trace.  So we find the
+      # points closest to the corners that do lie on the trace.
       corner_one_distances = [
         util.distance(corner_one, p) for p in self.trace]
       index_one = corner_one_distances.index(min(corner_one_distances))
-      corner_two = self.corners[(corner_index+1)%4]
+      corner_two = self.corners[(corner_index + 1) % 4]
       corner_two_distances = [
         util.distance(corner_two, p) for p in self.trace]
       index_two = corner_two_distances.index(min(corner_two_distances))
