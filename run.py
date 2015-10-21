@@ -15,7 +15,8 @@ min_corner_candidates = 30
 max_corner_candidates = 50
 
 
-filepaths = ('g.jpg', 'h.jpg')
+filepaths = ('take-two/0.jpg', 'take-two/1.jpg', 'take-two/2.jpg',
+             'take-two/3.jpg')
 figure_grid = gridspec.GridSpec(len(filepaths), 2)
 figure_grid.update(wspace=0.025, hspace=0.05)
 figure = plt.gcf()
@@ -39,14 +40,7 @@ for index, filepath in enumerate(filepaths):
 
   # Get contours.
   try:
-    if 'g.jpg' in filepath:
-      piece.segment(low_threshold=50, high_threshold=150)
-    elif 'h.jpg' in filepath:
-      piece.segment(low_threshold=90, high_threshold=120)
-    elif '0.jpg' in filepath:
-      piece.segment(low_threshold=100, high_threshold=170)
-    else:
-      piece.segment()
+    piece.segment()
     ax0.plot(piece.outline[:, 0], -piece.outline[:, 1], color='green')
     ax1.plot(piece.outline[:, 0], piece.outline[:, 1], color='gray')
   except:
@@ -79,7 +73,7 @@ for index, filepath in enumerate(filepaths):
       if iterations > max_corner_iterations:
         raise ValueError
       elif len(piece.candidate_corners) < min_corner_candidates:
-        harris_sensitivity -= 0.01
+        harris_sensitivity -= 0.001
       elif len(piece.candidate_corners) > max_corner_candidates:
         harris_sensitivity += 0.051
       iterations += 1
