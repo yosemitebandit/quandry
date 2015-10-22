@@ -215,3 +215,53 @@ class JigsawPiece(object):
       else:
         side_type = 'in'
       self.side_types.append(side_type)
+
+  def template_corners(self):
+    """Use a right angle template and Hausdorff comparison to find corners."""
+    index = 0
+    window_size = 40
+    self.hausdorff_scores = []
+    while True:
+      # Get a slice of the curve with the indexed point in the middle.
+      roll_point = window_size / 2 - index
+      test_segment = np.roll(self.outline, roll_point)[0:window_size]
+      # Generate two right isoceles triangles on either side of the segment
+      # using the test segment's start and end point.  First get the distance
+      # and angle between points.
+      a = test_segment[0]
+      b = test_segment[-1]
+      distance = util.distance(a, b)
+      endpoint_angle = util.angle(a, b)
+      # Find the two apexes of the two triangles.  We assume the line
+      # connecting the test segment's start and end points lies along the
+      # x-axis.
+      apex_one = [distance / 2, -distance / 2]
+      apex_two = [distance / 2, distance / 2]
+      # Rotate and then shift the apexes to fix the assumption above.
+      apex_one = util.rotate(apex_one, endpoint_angle)
+      apex_two = util.rotate(apex_two, endpoint_angle)
+      apex_one = [apex_one[0] + a[0], apex_one[1] + a[1]]
+      apex_two = [apex_two[0] + a[0], apex_two[1] + a[1]]
+      # Compute Hausdorff distances between both right angles.  Each right
+      # angle will be treated as two separate lines, so we'll do four distance
+      # computations for each point along the segment.
+      line_pairs = ([a, apex_one], [apex_one, b], [a, apex_two], [apex_two, b])
+      segment_scores = []
+      for test_point in test_segment:
+        four_scores = [
+          util.distance_to_line(pair, test_point) for pair in line_pairs]
+        # We'll take the min of these four distances as the score for the
+        # point in the segment.
+        segment_scores.append(min(four_scores))
+      # And the max of all scores along the segment is the Haussdorff distance
+      # for the index.
+      self.hausdorff_scores.append(max(segment_scores))
+      # Track progress and break at the end.
+      if index % 50 == 0:
+        print '%0.2f%% complete' % (100. * index / len(self.outline))
+      index += 1
+      if index >= len(self.outline):
+        self.test_segment = test_segment
+        self.apex_one = apex_one
+        self.apex_two = apex_two
+        break
