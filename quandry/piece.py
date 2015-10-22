@@ -5,7 +5,6 @@ import math
 
 import numpy as np
 from scipy import ndimage
-from skimage import feature
 from skimage import filters
 from skimage import io
 from skimage import measure
@@ -24,6 +23,7 @@ class JigsawPiece(object):
     # Setup other to-be-determined attributes.
     self.segmentation = []
     self.outline = []
+    self.hausdorff_scores = []
     self.candidate_corners = []
     self.center = []
     self.angles = []
@@ -60,21 +60,6 @@ class JigsawPiece(object):
     self.center = [
       np.average(self.outline[:, 0]),
       np.average(self.outline[:, 1])]
-
-  def find_corners(self, harris_sensitivity=0.05, corner_peaks_dist=2):
-    """Get candidate corners."""
-    harris = feature.corner_harris(self.segmentation, k=harris_sensitivity)
-    # Again note the flip over y=-x to fix plotting issues..
-    corners = [[p[1], -p[0]] for p in
-               feature.corner_peaks(harris, min_distance=corner_peaks_dist)]
-    # Try to remove outliers -- probably edges of the image.
-    distances = [util.distance(c, self.center) for c in corners]
-    average = np.average(distances)
-    stdev = np.std(distances)
-    self.candidate_corners = []
-    for index, corner in enumerate(corners):
-      if average + 1.5 * stdev > distances[index]:
-        self.candidate_corners.append(corner)
 
   def find_angles(self):
     """Find angle to each candidate corner, relative to the center."""
@@ -216,22 +201,20 @@ class JigsawPiece(object):
         side_type = 'in'
       self.side_types.append(side_type)
 
-  def template_corners(self, test_segment_size=20,
-                       number_of_candidate_corners=80):
+  def template_corners(self, segment_size=20, number_of_candidate_corners=80):
     """Use a right angle template and Hausdorff comparison to find corners."""
-    self.hausdorff_scores = []
     for index, point in enumerate(self.outline):
       # Get a slice of the curve with the indexed point in the middle.
-      roll_point = test_segment_size / 2 - index
-      test_segment = np.roll(self.outline, roll_point, axis=0)
-      test_segment = test_segment[0:test_segment_size]
+      roll_point = segment_size / 2 - index
+      segment = np.roll(self.outline, roll_point, axis=0)
+      segment = segment[0:segment_size]
       # Generate two right isoceles triangles on either side of the segment
       # using the test segment's start and end point.  First get the distance
       # and angle between points.
-      a = test_segment[0]
-      b = test_segment[-1]
-      distance = util.distance(a, b)
-      endpoint_angle = util.angle(a, b)
+      a = segment[0]
+      b = segment[-1]
+      distance = util.distance(segment[0], segment[-1])
+      endpoint_angle = util.angle(segment[0], segment[-1])
       # Find the two apexes of the two triangles.  We assume the line
       # connecting the test segment's start and end points lies along the
       # x-axis.
@@ -240,14 +223,15 @@ class JigsawPiece(object):
       # Rotate and then shift the apexes to fix the assumption above.
       apex_one = util.rotate(apex_one, endpoint_angle)
       apex_two = util.rotate(apex_two, endpoint_angle)
-      apex_one = [apex_one[0] + a[0], apex_one[1] + a[1]]
-      apex_two = [apex_two[0] + a[0], apex_two[1] + a[1]]
+      apex_one = [apex_one[0] + segment[0][0], apex_one[1] + segment[0][1]]
+      apex_two = [apex_two[0] + segment[0][0], apex_two[1] + segment[0][1]]
       # Compute Hausdorff distances between both right angles.  Each right
       # angle will be treated as two separate lines, so we'll do four distance
       # computations for each point along the segment.
-      line_pairs = ([a, apex_one], [apex_one, b], [a, apex_two], [apex_two, b])
+      line_pairs = ([segment[0], apex_one], [apex_one, segment[-1]],
+                    [segment[0], apex_two], [apex_two, segment[-1]])
       segment_scores = []
-      for test_point in test_segment:
+      for test_point in segment:
         four_scores = [
           util.distance_to_line(pair, test_point) for pair in line_pairs]
         # We'll take the min of these four distances as the score for the
@@ -263,5 +247,5 @@ class JigsawPiece(object):
     # them as candidate corners.
     best_scores = sorted(self.hausdorff_scores, key=lambda e: e[2])
     best_scores = best_scores[0:number_of_candidate_corners]
-    for index, point, score in best_scores:
+    for _, point, _ in best_scores:
       self.candidate_corners.append(point)

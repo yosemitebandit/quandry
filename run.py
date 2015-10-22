@@ -4,15 +4,8 @@ import os
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import numpy as np
 
 from quandry import JigsawPiece
-
-
-initial_harris_sensitivity = 0.05
-max_corner_iterations = 50
-min_corner_candidates = 30
-max_corner_candidates = 50
 
 
 filepaths = ('take-two/0.jpg', 'take-two/1.jpg', 'take-two/2.jpg',
@@ -59,31 +52,6 @@ for index, filepath in enumerate(filepaths):
   except:
     print 'could not find center for "%s"' % filepath
     continue
-
-  '''
-  # Iteratively look for a reasonable number of corner candidates.
-  try:
-    harris_sensitivity = initial_harris_sensitivity
-    iterations = 0
-    while True:
-      piece.find_corners(harris_sensitivity=harris_sensitivity)
-      print '  %s candidate corners' % len(piece.candidate_corners)
-      if (min_corner_candidates <= len(piece.candidate_corners) and
-          max_corner_candidates >= len(piece.candidate_corners)):
-        break
-      if iterations > max_corner_iterations:
-        raise ValueError
-      elif len(piece.candidate_corners) < min_corner_candidates:
-        harris_sensitivity -= 0.001
-      elif len(piece.candidate_corners) > max_corner_candidates:
-        harris_sensitivity += 0.051
-      iterations += 1
-    for cc in piece.candidate_corners:
-      ax1.plot(cc[0], cc[1], '+r', markersize=8)
-  except:
-    print 'could not find corner candidates for "%s"' % filepath
-    continue
-  '''
 
   # Find corner candidates with template matching.
   try:
