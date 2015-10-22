@@ -223,8 +223,8 @@ class JigsawPiece(object):
     for index, point in enumerate(self.outline):
       # Get a slice of the curve with the indexed point in the middle.
       roll_point = test_segment_size / 2 - index
-      test_segment = np.roll(
-        self.outline, roll_point, axis=0)[0:test_segment_size]
+      test_segment = np.roll(self.outline, roll_point, axis=0)
+      test_segment = test_segment[0:test_segment_size]
       # Generate two right isoceles triangles on either side of the segment
       # using the test segment's start and end point.  First get the distance
       # and angle between points.
@@ -259,12 +259,9 @@ class JigsawPiece(object):
       # Track progress.
       if index % 50 == 0:
         print '%0.2f%% complete' % (100. * index / len(self.outline))
-
-    self.test_segment = test_segment
-    self.apex_one = apex_one
-    self.apex_two = apex_two
-    # Grab the min Hausdorff scores and set them as candidate corners.
-    best_scores = sorted(
-      self.hausdorff_scores, key=lambda e: e[2])[0:number_of_candidate_corners]
+    # After analyzing the whole outline, grab the min Hausdorff scores and set
+    # them as candidate corners.
+    best_scores = sorted(self.hausdorff_scores, key=lambda e: e[2])
+    best_scores = best_scores[0:number_of_candidate_corners]
     for index, point, score in best_scores:
       self.candidate_corners.append(point)

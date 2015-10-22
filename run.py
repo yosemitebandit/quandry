@@ -88,15 +88,6 @@ for index, filepath in enumerate(filepaths):
   # Find corner candidates with template matching.
   try:
     piece.template_corners()
-    ax1.plot(piece.test_segment[:,0], piece.test_segment[:,1], color='red')
-    ax1.plot(
-      [piece.test_segment[0][0], piece.apex_one[0], piece.test_segment[-1][0]],
-      [piece.test_segment[0][1], piece.apex_one[1], piece.test_segment[-1][1]],
-      color='blue')
-    ax1.plot(
-      [piece.test_segment[0][0], piece.apex_two[0], piece.test_segment[-1][0]],
-      [piece.test_segment[0][1], piece.apex_two[1], piece.test_segment[-1][1]],
-      color='purple')
     for cc in piece.candidate_corners:
       ax1.plot(cc[0], cc[1], '+r', markersize=8)
   except:
