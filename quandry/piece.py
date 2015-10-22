@@ -216,15 +216,15 @@ class JigsawPiece(object):
         side_type = 'in'
       self.side_types.append(side_type)
 
-  def template_corners(self):
+  def template_corners(self, test_segment_size=20,
+                       number_of_candidate_corners=80):
     """Use a right angle template and Hausdorff comparison to find corners."""
-    index = 0
-    window_size = 40
     self.hausdorff_scores = []
-    while True:
+    for index, point in enumerate(self.outline):
       # Get a slice of the curve with the indexed point in the middle.
-      roll_point = window_size / 2 - index
-      test_segment = np.roll(self.outline, roll_point)[0:window_size]
+      roll_point = test_segment_size / 2 - index
+      test_segment = np.roll(
+        self.outline, roll_point, axis=0)[0:test_segment_size]
       # Generate two right isoceles triangles on either side of the segment
       # using the test segment's start and end point.  First get the distance
       # and angle between points.
@@ -255,13 +255,16 @@ class JigsawPiece(object):
         segment_scores.append(min(four_scores))
       # And the max of all scores along the segment is the Haussdorff distance
       # for the index.
-      self.hausdorff_scores.append(max(segment_scores))
-      # Track progress and break at the end.
+      self.hausdorff_scores.append([index, point, max(segment_scores)])
+      # Track progress.
       if index % 50 == 0:
         print '%0.2f%% complete' % (100. * index / len(self.outline))
-      index += 1
-      if index >= len(self.outline):
-        self.test_segment = test_segment
-        self.apex_one = apex_one
-        self.apex_two = apex_two
-        break
+
+    self.test_segment = test_segment
+    self.apex_one = apex_one
+    self.apex_two = apex_two
+    # Grab the min Hausdorff scores and set them as candidate corners.
+    best_scores = sorted(
+      self.hausdorff_scores, key=lambda e: e[2])[0:number_of_candidate_corners]
+    for index, point, score in best_scores:
+      self.candidate_corners.append(point)

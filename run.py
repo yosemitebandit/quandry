@@ -15,9 +15,9 @@ min_corner_candidates = 30
 max_corner_candidates = 50
 
 
-filepaths = ('take-two/2.jpg',)# 'take-two/1.jpg', 'take-two/2.jpg',
-             #'take-two/3.jpg')
-figure_grid = gridspec.GridSpec(len(filepaths), 3)
+filepaths = ('take-two/0.jpg', 'take-two/1.jpg', 'take-two/2.jpg',
+             'take-two/3.jpg')
+figure_grid = gridspec.GridSpec(len(filepaths), 2)
 figure_grid.update(wspace=0.025, hspace=0.05)
 figure = plt.gcf()
 
@@ -26,7 +26,6 @@ for index, filepath in enumerate(filepaths):
   # Setup each axis.
   ax0 = plt.subplot(figure_grid[index, 0])
   ax1 = plt.subplot(figure_grid[index, 1])
-  ax2 = plt.subplot(figure_grid[index, 2])
   ax0.axis('off')
   ax1.axis('off')
   ax0.set_aspect('equal')
@@ -98,14 +97,8 @@ for index, filepath in enumerate(filepaths):
       [piece.test_segment[0][0], piece.apex_two[0], piece.test_segment[-1][0]],
       [piece.test_segment[0][1], piece.apex_two[1], piece.test_segment[-1][1]],
       color='purple')
-    piece.candidate_corners = []
-    for score in sorted(piece.hausdorff_scores)[0:60]:
-      index = piece.hausdorff_scores.index(score)
-      piece.candidate_corners.append(piece.outline[index])
     for cc in piece.candidate_corners:
       ax1.plot(cc[0], cc[1], '+r', markersize=8)
-    ax2.plot(piece.hausdorff_scores, 'k.')
-    ax2.plot(piece.hausdorff_scores, 'k-')
   except:
     print 'could not find corner candidates for "%s"' % filepath
     continue
