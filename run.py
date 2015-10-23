@@ -106,4 +106,4 @@ for index, filepath in enumerate(filepaths):
     continue
 
 plt.show()
-figure.savefig('out.png', dpi=100)
+figure.savefig('out.png', dpi=200)

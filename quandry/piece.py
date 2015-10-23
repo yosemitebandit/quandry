@@ -63,11 +63,8 @@ class JigsawPiece(object):
 
   def find_angles(self):
     """Find angle to each candidate corner, relative to the center."""
-    self.angles = []
-    for coord in self.candidate_corners:
-      x = coord[0] - self.center[0]
-      y = coord[1] - self.center[1]
-      self.angles.append(180 / math.pi * math.atan2(y, x))
+    self.angles = [180 / math.pi * util.angle(self.center, cc)
+                   for cc in self.candidate_corners]
 
   def find_corner_sets(self, center_dist_threshold=0.2, angle_threshold=0.2):
     """Find corner sets."""
@@ -211,8 +208,6 @@ class JigsawPiece(object):
       # Generate two right isoceles triangles on either side of the segment
       # using the test segment's start and end point.  First get the distance
       # and angle between points.
-      a = segment[0]
-      b = segment[-1]
       distance = util.distance(segment[0], segment[-1])
       endpoint_angle = util.angle(segment[0], segment[-1])
       # Find the two apexes of the two triangles.  We assume the line
