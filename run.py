@@ -77,7 +77,6 @@ for index, filepath in enumerate(filepaths):
     piece.find_sides()
     colors = ('r', 'g', 'b', 'cyan')
     for index, side in enumerate(piece.sides):
-      print 'side elements:', len(side)
       x = [s[0] for s in side]
       y = [s[1] for s in side]
       ax1.plot(x, y, color=colors[index])

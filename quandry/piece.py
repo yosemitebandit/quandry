@@ -66,7 +66,7 @@ class JigsawPiece(object):
     self.angles = [180 / math.pi * util.angle(self.center, cc)
                    for cc in self.candidate_corners]
 
-  def find_corner_sets(self, center_dist_threshold=0.2, angle_threshold=0.2):
+  def find_corner_sets(self, center_dist_threshold=0.3, angle_threshold=0.4):
     """Find corner sets."""
     self.corner_sets = {}
     for i, coord_one in enumerate(self.candidate_corners):
@@ -198,7 +198,7 @@ class JigsawPiece(object):
         side_type = 'in'
       self.side_types.append(side_type)
 
-  def template_corners(self, segment_size=20, number_of_candidate_corners=80):
+  def template_corners(self, segment_size=30, number_of_candidate_corners=80):
     """Use a right angle template and Hausdorff comparison to find corners."""
     for index, point in enumerate(self.outline):
       # Get a slice of the curve with the indexed point in the middle.
