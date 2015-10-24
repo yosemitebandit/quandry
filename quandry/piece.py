@@ -22,7 +22,7 @@ class JigsawPiece(object):
     self.grey_image = io.imread(filepath, as_grey=True)
     # Setup other to-be-determined attributes.
     self.segmentation = []
-    self.outline = []
+    self.outline = np.array([])
     self.hausdorff_scores = []
     self.candidate_corners = []
     self.center = []
