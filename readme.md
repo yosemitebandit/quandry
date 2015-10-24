@@ -2,4 +2,4 @@
 
 In this example,
 side two of the third piece
-fits with side 0 of the fourth piece.
+fits with side zero of the fourth piece.
