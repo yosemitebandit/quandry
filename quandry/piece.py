@@ -236,7 +236,7 @@ class JigsawPiece(object):
       # for the index.
       self.hausdorff_scores.append([index, point, max(segment_scores)])
       # Track progress.
-      if index % 50 == 0:
+      if index % 100 == 0:
         print '%0.2f%% complete' % (100. * index / len(self.outline))
     # After analyzing the whole outline, grab the min Hausdorff scores and set
     # them as candidate corners.
