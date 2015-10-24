@@ -9,8 +9,7 @@ import matplotlib.gridspec as gridspec
 from quandry import JigsawPiece
 
 
-filepaths = ('take-two/0.jpg', 'take-two/1.jpg', 'take-two/2.jpg',
-             'take-two/3.jpg')
+filepaths = ('0.jpg', '1.jpg', '2.jpg', '3.jpg')
 figure_grid = gridspec.GridSpec(2, len(filepaths))
 figure_grid.update(wspace=0.025, hspace=0.05)
 figure = plt.gcf()
