@@ -1,4 +1,7 @@
-"""Puzzle piece image processing."""
+"""Script to process puzzle piece images.
+
+Saves output data in a json file.
+"""
 
 import json
 import os
