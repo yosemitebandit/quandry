@@ -10,15 +10,15 @@ from quandry import JigsawPiece
 
 filepaths = ('take-two/0.jpg', 'take-two/1.jpg', 'take-two/2.jpg',
              'take-two/3.jpg')
-figure_grid = gridspec.GridSpec(len(filepaths), 2)
+figure_grid = gridspec.GridSpec(2, len(filepaths))
 figure_grid.update(wspace=0.025, hspace=0.05)
 figure = plt.gcf()
 
 
 for index, filepath in enumerate(filepaths):
   # Setup each axis.
-  ax0 = plt.subplot(figure_grid[index, 0])
-  ax1 = plt.subplot(figure_grid[index, 1])
+  ax0 = plt.subplot(figure_grid[0, index])
+  ax1 = plt.subplot(figure_grid[1, index])
   ax0.axis('off')
   ax1.axis('off')
   ax0.set_aspect('equal')
