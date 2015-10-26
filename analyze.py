@@ -119,7 +119,7 @@ for index, filepath in enumerate(filepaths):
 
 # Show the figure.
 plt.show()
-figure.savefig('out.png', dpi=200)
+figure.savefig('pieces.png', dpi=200)
 
 
 # Save the output data.

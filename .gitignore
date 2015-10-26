@@ -1,3 +1,4 @@
 *.pyc
-out.png
+pieces.png
 piece-data.json
+fit.png
