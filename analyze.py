@@ -12,25 +12,37 @@ import matplotlib.gridspec as gridspec
 from quandry import JigsawPiece
 
 
-filepaths = ('0.jpg', '1.jpg', '2.jpg', '3.jpg')
-figure_grid = gridspec.GridSpec(2, len(filepaths))
-figure_grid.update(wspace=0.025, hspace=0.05)
-figure = plt.gcf()
+filepaths = (
+  '4.jpg',
+  '5.jpg',
+  '6.jpg',
+  '7.jpg',
+  '8.jpg',
+  '9.jpg',
+  '10.jpg',
+  '11.jpg',
+  '12.jpg',
+  '13.jpg',
+  '14.jpg',
+  '15.jpg',
+)
 piece_data = {}
 
 
-for index, filepath in enumerate(filepaths):
+for filepath in filepaths:
   # Setup each axis.
-  ax0 = plt.subplot(figure_grid[0, index])
-  ax1 = plt.subplot(figure_grid[1, index])
+  figure_grid = gridspec.GridSpec(1, 2)
+  figure_grid.update(wspace=0.025, hspace=0.05)
+  ax0 = plt.subplot(figure_grid[0, 0])
+  ax1 = plt.subplot(figure_grid[0, 1])
   ax0.axis('off')
   ax1.axis('off')
   ax0.set_aspect('equal')
   ax1.set_aspect('equal')
 
   # Start processing each image.
-  print 'processing "%s"..' % filepath
   filepath = os.path.join('sample-pieces/', filepath)
+  print 'processing "%s"..' % filepath
   piece = JigsawPiece(filepath)
   # Plot the raw image and save associated data.
   ax0.imshow(piece.raw_image, aspect='equal')
@@ -116,10 +128,10 @@ for index, filepath in enumerate(filepaths):
     print 'could not find side types for "%s"' % filepath
     continue
 
-
-# Show the figure.
-plt.show()
-figure.savefig('pieces.png', dpi=200)
+  # Save the figure.
+  figure = plt.gcf()
+  filename = os.path.basename(filepath)
+  figure.savefig(os.path.join('results', filename), dpi=100)
 
 
 # Save the output data.
