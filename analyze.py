@@ -13,6 +13,9 @@ from quandry import JigsawPiece
 
 
 filepaths = (
+  '1.jpg',
+  '2.jpg',
+  '3.jpg',
   '4.jpg',
   '5.jpg',
   '6.jpg',
@@ -22,9 +25,6 @@ filepaths = (
   '10.jpg',
   '11.jpg',
   '12.jpg',
-  '13.jpg',
-  '14.jpg',
-  '15.jpg',
 )
 piece_data = {}
 
