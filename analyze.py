@@ -116,11 +116,12 @@ for filepath in filepaths:
   # Classify each side's type and label.
   try:
     piece.find_side_types()
+    directions = ('N', 'E', 'S', 'W')
     for index, side in enumerate(piece.sides):
       length = piece.side_lengths[index]
       side_type = piece.side_types[index]
       x, y = piece.mean_side_points[index]
-      label = 'side %s: %0.0f (%s)' % (index, length, side_type)
+      label = '%s: %0.0f (%s)' % (directions[index], length, side_type)
       ax1.text(x, y, label, horizontalalignment='center',
                verticalalignment='center')
     piece_data[filepath]['side_types'] = piece.side_types
