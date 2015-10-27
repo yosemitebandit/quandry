@@ -34,6 +34,8 @@ class JigsawPiece(object):
     self.side_lengths = []
     self.mean_side_points = []
     self.side_types = []
+    self.bounding_boxes = []
+    self.aspect_ratios = []
 
   def segment(self, low_threshold=50, high_threshold=110, contour_level=0.5):
     """Finds the piece's outline via region-based segmentation.
@@ -244,3 +246,24 @@ class JigsawPiece(object):
     best_scores = best_scores[0:number_of_candidate_corners]
     for _, point, _ in best_scores:
       self.candidate_corners.append(point)
+
+  def find_bounding_boxes(self):
+    """Define the bounding boxes around non-flat sides.
+
+    This is defined by two points: one in the upper left and one in the lower
+    right.  We'll also save the aspect ratio of the bounding box -- the box's
+    width / height.
+    """
+    for index, side in enumerate(self.sides):
+      if self.side_types[index] == 'flat':
+        self.bounding_boxes.append([])
+        self.aspect_ratios.append(None)
+      else:
+        min_x = min(side[:, 0])
+        min_y = min(side[:, 1])
+        max_x = max(side[:, 0])
+        max_y = max(side[:, 1])
+        top_left = [min_x, max_y]
+        bot_right = [max_x, min_y]
+        self.bounding_boxes.append((top_left, bot_right))
+        self.aspect_ratios.append((max_x - min_x) / (max_y - min_y))

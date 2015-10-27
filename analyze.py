@@ -128,6 +128,24 @@ for filepath in filepaths:
     print 'could not find side types for "%s"' % filepath
     continue
 
+  # Define the bounding box around each non-flat side.
+  try:
+    piece.find_bounding_boxes()
+    colors = ('r', 'g', 'b', 'cyan')
+    for index, bbox in enumerate(piece.bounding_boxes):
+      if not bbox:
+        # Flat sides will not have a defined bounding box.
+        continue
+      for point in bbox:
+        ax1.plot(point[0], point[1], color='purple', marker='.', markersize=6)
+      ax1.plot(
+        [bbox[0][0], bbox[1][0], bbox[1][0], bbox[0][0], bbox[0][0]],
+        [bbox[0][1], bbox[0][1], bbox[1][1], bbox[1][1], bbox[0][1]],
+        color=colors[index], linestyle='--')
+  except:
+    print 'could not find bounding boxes for "%s"' % filepath
+    continue
+
   # Save the figure.
   figure = plt.gcf()
   filename = os.path.basename(filepath)
