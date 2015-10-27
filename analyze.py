@@ -137,8 +137,6 @@ for filepath in filepaths:
       if not bbox:
         # Flat sides will not have a defined bounding box.
         continue
-      for point in bbox:
-        ax1.plot(point[0], point[1], color='purple', marker='.', markersize=6)
       ax1.plot(
         [bbox[0][0], bbox[1][0], bbox[1][0], bbox[0][0], bbox[0][0]],
         [bbox[0][1], bbox[0][1], bbox[1][1], bbox[1][1], bbox[0][1]],
