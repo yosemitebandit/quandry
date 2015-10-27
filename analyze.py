@@ -148,7 +148,7 @@ for filepath in filepaths:
   # Save the figure.
   figure = plt.gcf()
   filename = os.path.basename(filepath)
-  figure.savefig(os.path.join('results', filename), dpi=100)
+  figure.savefig(os.path.join('results', filename), dpi=200)
 
 
 # Save the output data.
