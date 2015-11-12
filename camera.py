@@ -1,26 +1,34 @@
-"""Camera testing with the beaglebone black and adafruit JPEG camera.
+"""Camera testing with the beaglebone black and Adafruit JPEG camera.
 
 Code from bradsmc.blogspot.com/2013/05/adafruit-ttl-serial-jpeg-camera.html
-and the adafruit tutorials.
+
+Usage:
+  camera.py --outdir=/home/test
+
+Options:
+  --outdir: where to save output files [default: /tmp]
 """
 
+import os
 import serial
 import time
 
 import Adafruit_BBIO.UART as UART
 import Adafruit_BBIO.GPIO as GPIO
+from docopt import docopt
 
 
 # Initialize serial port, switch and LED.
 UART.setup("UART1")
+ser = serial.Serial("/dev/ttyO1", baudrate=38400)
 GPIO.setup("P8_10", GPIO.OUT)
 GPIO.setup("P8_12", GPIO.IN)
 
 
 def take_photo():
-  """Takes a photo with the TTL camera and writes image to disk."""
+  """Takes a photo with the TTL camera."""
+  print 'Taking photo..'
   # Initialize camera.
-  ser = serial.Serial("/dev/ttyO1", baudrate=38400)
   ser.write(b'\x56\x00\x26\x00')
   resp = ""
   time.sleep(1)
@@ -50,6 +58,14 @@ def take_photo():
     if b'\x76\x00\x36\x00\x00' in resp:
       print "Picture taken"
       break
+
+
+def save_photo(outdir='/tmp'):
+  """Writes image to file.  We'll use integer filenames and won't overwrite.
+
+  Kwargs:
+    outdir: where to save the output file.
+  """
   # Get JPG size.
   ser.write(b'\x56\x00\x34\x01\x00')
   resp = ""
@@ -61,23 +77,31 @@ def take_photo():
       msb = ser.read()
       lsb = ser.read()
       print "Image file size: %d bytes" % (ord(msb) << 8 | ord(lsb))
-  # Write image to file.
   ser.write(
     b'\x56\x00\x32\x0C\x00\x0A\x00\x00\x00\x00\x00\x00%c%c\x00\x0A' % (
       msb, lsb))
   time.sleep(10)
-  filename = 'out.jpg'
+  # Find any existing image files in the outdir.
+  files = [f for f in os.listdir(outdir) if '.jpg' in f]
+  numbers = [int(f.strip('.jpg')) for f in files]
+  numbers = sorted(numbers)
+  if not numbers:
+    filename = '0.jpg'
+  else:
+    filename = '%s.jpg' % (numbers[-1] + 1)
+  filepath = os.path.join(outdir, filename)
   resp = ser.read(size=5)
   if b'\x76\x00\x32\x00\x00' in resp:
-    with open("/tmp/" + filename, 'wb') as f:
+    with open(filepath, 'wb') as f:
       while ser.inWaiting() > 0:
         data = ser.read()
         f.write('%c' % data)
-    print "Image written to /tmp/%s" % (filename)
+    print "Image written to %s" % filepath
 
 
 if __name__ == '__main__':
-  # Read the switch and, if it's pressed, turn off the LED and take a photo.
+  args = docopt(__doc__)
+  # If the switch is pressed, turn off the LED and take a photo.
   old_switch_state = 0
   while True:
     GPIO.output('P8_10', GPIO.HIGH)
@@ -85,5 +109,5 @@ if __name__ == '__main__':
     if new_switch_state == 1 and old_switch_state == 0:
       GPIO.output('P8_10', GPIO.LOW)
       take_photo()
+      save_photo(args['--outdir'])
     old_switch_state = new_switch_state
-    time.sleep(0.1)
