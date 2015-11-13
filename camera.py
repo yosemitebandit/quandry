@@ -3,10 +3,10 @@
 Code from bradsmc.blogspot.com/2013/05/adafruit-ttl-serial-jpeg-camera.html
 
 Usage:
-  camera.py --outdir=/home/test
+  camera.py [--outdir=/home/test]
 
 Options:
-  --outdir: where to save output files [default: /tmp]
+  --outdir: where to save output files (defaults to /tmp)
 """
 
 import os
@@ -63,7 +63,7 @@ def take_photo():
 def save_photo(outdir='/tmp'):
   """Writes image to file.  We'll use integer filenames and won't overwrite.
 
-  Kwargs:
+  kwargs:
     outdir: where to save the output file.
   """
   # Get JPG size.
@@ -81,6 +81,9 @@ def save_photo(outdir='/tmp'):
     b'\x56\x00\x32\x0C\x00\x0A\x00\x00\x00\x00\x00\x00%c%c\x00\x0A' % (
       msb, lsb))
   time.sleep(10)
+  # Create outdir if it doesn't exist.
+  if not os.path.exists(outdir):
+    os.makedirs(outdir)
   # Find any existing image files in the outdir.
   files = [f for f in os.listdir(outdir) if '.jpg' in f]
   numbers = [int(f.strip('.jpg')) for f in files]
@@ -109,5 +112,8 @@ if __name__ == '__main__':
     if new_switch_state == 1 and old_switch_state == 0:
       GPIO.output('P8_10', GPIO.LOW)
       take_photo()
-      save_photo(args['--outdir'])
+      if not args['--outdir']:
+        save_photo()
+      else:
+        save_photo(outdir=args['--outdir'])
     old_switch_state = new_switch_state
