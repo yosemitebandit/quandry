@@ -104,10 +104,10 @@ def save_photo(outdir='/tmp'):
 
 if __name__ == '__main__':
   args = docopt(__doc__)
+  GPIO.output('P8_10', GPIO.HIGH)
   # If the switch is pressed, turn off the LED and take a photo.
   old_switch_state = 0
   while True:
-    GPIO.output('P8_10', GPIO.HIGH)
     new_switch_state = GPIO.input('P8_12')
     if new_switch_state == 1 and old_switch_state == 0:
       GPIO.output('P8_10', GPIO.LOW)
@@ -116,4 +116,5 @@ if __name__ == '__main__':
         save_photo()
       else:
         save_photo(outdir=args['--outdir'])
+      GPIO.output('P8_10', GPIO.HIGH)
     old_switch_state = new_switch_state
