@@ -44,8 +44,7 @@ if __name__ == '__main__':
   piece = JigsawPiece(filepath)
   if args['--plot']:
     ax0.imshow(piece.raw_image, aspect='equal')
-  piece_data[filepath] = {}
-  piece_data[filepath]['raw_image'] = piece.raw_image.tolist()
+  piece_data['raw_image'] = piece.raw_image.tolist()
 
   # Get contours.
   try:
@@ -53,7 +52,7 @@ if __name__ == '__main__':
     if args['--plot']:
       ax0.plot(piece.outline[:, 0], -piece.outline[:, 1], color='green')
       ax1.plot(piece.outline[:, 0], piece.outline[:, 1], color='gray')
-    piece_data[filepath]['outline'] = piece.outline.tolist()
+    piece_data['outline'] = piece.outline.tolist()
   except:
     print 'could not find contours for "%s"' % filepath
 
@@ -68,7 +67,7 @@ if __name__ == '__main__':
     piece.find_center()
     if args['--plot']:
       ax1.plot(piece.center[0], piece.center[1], '*b', markersize=8)
-    piece_data[filepath]['center'] = piece.center
+    piece_data['center'] = piece.center
   except:
     print 'could not find center for "%s"' % filepath
 
@@ -88,7 +87,7 @@ if __name__ == '__main__':
       corner_xs = [c[0] for c in piece.corners]
       corner_ys = [c[1] for c in piece.corners]
       ax1.plot(corner_xs, corner_ys, 'og', markersize=8)
-    piece_data[filepath]['corners'] = [c.tolist() for c in piece.corners]
+    piece_data['corners'] = [c.tolist() for c in piece.corners]
   except:
     print 'could not find true corners for "%s"' % filepath
 
@@ -101,14 +100,14 @@ if __name__ == '__main__':
         x = [s[0] for s in side]
         y = [s[1] for s in side]
         ax1.plot(x, y, color=colors[index])
-    piece_data[filepath]['sides'] = [s.tolist() for s in piece.sides]
+    piece_data['sides'] = [s.tolist() for s in piece.sides]
   except:
     print 'could not find sides for "%s"' % filepath
 
   # Get length of each side and label.
   try:
     piece.find_side_lengths()
-    piece_data[filepath]['side_lengths'] = piece.side_lengths
+    piece_data['side_lengths'] = piece.side_lengths
   except:
     print 'could not find side lengths for "%s"' % filepath
 
@@ -124,7 +123,7 @@ if __name__ == '__main__':
         label = '%s: %0.0f (%s)' % (directions[index], length, side_type)
         ax1.text(x, y, label, horizontalalignment='center',
                  verticalalignment='center')
-    piece_data[filepath]['side_types'] = piece.side_types
+    piece_data['side_types'] = piece.side_types
   except:
     print 'could not find side types for "%s"' % filepath
 
