@@ -2,6 +2,7 @@
 
 import math
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -105,4 +106,20 @@ def hausdorff(a, b):
       distances = [distance(point, b) for b in b_line]
       min_distances.append(min(distances))
     results.append(np.mean(min_distances))
+
+  # let's plot some stuff..
+  ax = plt.subplot('111')
+  x = [p[0] for p in translated_a]
+  y = [p[1] for p in translated_a]
+  ax.plot(x, y)
+  x = [p[0] for p in reflected_b]
+  y = [p[1] for p in reflected_b]
+  ax.plot(x, y)
+  x = [p[0] for p in rotated_b]
+  y = [p[1] for p in rotated_b]
+  ax.plot(x, y)
+  ax.set_aspect('equal')
+  figure = plt.gcf()
+  figure.savefig('/tmp/hout.png', dpi=200)
+
   return min(results)
